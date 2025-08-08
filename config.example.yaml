@@ -1,0 +1,22 @@
+imap:
+  host: "imap.example.com"
+  port: 993
+  username: "user@example.com"
+  password: "your-password"
+  tls: true
+  folders:
+    "INBOX": "inbox"
+    "INBOX/Important": "important"
+    "INBOX/Work": "work"
+
+database:
+  path: "./data/emailrss.db"
+
+rss:
+  output_dir: "./feeds"
+  title: "Email RSS Feeds"
+  base_url: "http://localhost:8080"
+
+server:
+  host: "0.0.0.0"
+  port: 8080

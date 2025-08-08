@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emailrss-config
+  namespace: emailrss
+data:
+  config.yaml: |
+    imap:
+      host: "imap.example.com"
+      port: 993
+      username: "user@example.com"
+      password: "your-password"
+      tls: true
+      folders:
+        "INBOX": "inbox"
+        "INBOX/Important": "important"
+        "INBOX/Work": "work"
+
+    database:
+      path: "/data/db/emailrss.db"
+
+    rss:
+      output_dir: "/data/feeds"
+      title: "Email RSS Feeds"
+      base_url: "http://emailrss-service:8080"
+
+    server:
+      host: "0.0.0.0"
+      port: 8080

@@ -39,6 +39,8 @@ func TestStartServerSuccess(t *testing.T) {
 	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
+	time.Sleep(2 * time.Second) // wait for port to be released?
+
 	config := ServerConfig{
 		Host:     "localhost",
 		Port:     port,

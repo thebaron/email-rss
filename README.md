@@ -1,5 +1,10 @@
 # EmailRSS
 
+[![CI](https://github.com/thebaron/emailrss/actions/workflows/ci.yml/badge.svg)](https://github.com/thebaron/emailrss/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/thebaron/emailrss/branch/main/graph/badge.svg)](https://codecov.io/gh/thebaron/emailrss)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thebaron/emailrss)](https://goreportcard.com/report/github.com/thebaron/emailrss)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Convert email folders into RSS feeds for reading in RSS readers.
 
 ## Features
@@ -81,6 +86,18 @@ kubectl apply -f k8s/cronjob.yaml
 - **Web Server**: Serves RSS feeds with health checks
 - **CLI Interface**: kong-based command line interface
 - **Configuration**: koanf-based YAML configuration management
+
+## CI/CD & Quality
+
+This project uses GitHub Actions for continuous integration with:
+
+- **Automated Testing**: Unit and integration tests on every push/PR
+- **Code Coverage**: Coverage reports uploaded to Codecov
+- **Code Quality**: Comprehensive linting with golangci-lint
+- **Build Verification**: Multi-platform build testing
+- **Artifact Generation**: Automated binary and coverage report generation
+
+Current test coverage: **65.6%** across core business logic components.
 
 ## Future Enhancements
 

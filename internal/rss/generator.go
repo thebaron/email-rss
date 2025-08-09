@@ -80,7 +80,7 @@ func (g *Generator) GenerateFeed(folder, feedName string, messages []EmailMessag
 	}
 
 	feedPath := filepath.Join(g.config.OutputDir, fmt.Sprintf("%s.xml", feedName))
-	
+
 	rssXML, err := feed.ToRss()
 	if err != nil {
 		return fmt.Errorf("failed to generate RSS XML: %v", err)
@@ -97,11 +97,11 @@ func (g *Generator) processContent(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "<br>")
 	content = strings.ReplaceAll(content, "\n", "<br>")
 	content = html.EscapeString(content)
-	
+
 	if len(content) > 1000 {
 		content = content[:1000] + "..."
 	}
-	
+
 	return content
 }
 

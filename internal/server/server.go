@@ -14,9 +14,9 @@ type Server struct {
 }
 
 type ServerConfig struct {
-	Host      string
-	Port      int
-	FeedsDir  string
+	Host     string
+	Port     int
+	FeedsDir string
 }
 
 func New(config ServerConfig) *Server {
@@ -27,7 +27,7 @@ func New(config ServerConfig) *Server {
 
 func (s *Server) Start() error {
 	mux := http.NewServeMux()
-	
+
 	mux.HandleFunc("/", s.handleRoot)
 	mux.HandleFunc("/feeds/", s.handleFeed)
 	mux.HandleFunc("/health", s.handleHealth)
@@ -35,7 +35,7 @@ func (s *Server) Start() error {
 	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
 	log.Printf("Starting server on %s", addr)
 	log.Printf("Serving RSS feeds from %s", s.config.FeedsDir)
-	
+
 	return http.ListenAndServe(addr, mux)
 }
 
@@ -55,12 +55,12 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "<html><head><title>EmailRSS Feeds</title></head><body>")
 	fmt.Fprintf(w, "<h1>Available RSS Feeds</h1>")
 	fmt.Fprintf(w, "<ul>")
-	
+
 	for _, feed := range feeds {
 		feedURL := fmt.Sprintf("/feeds/%s", feed)
 		fmt.Fprintf(w, "<li><a href=\"%s\">%s</a></li>", feedURL, feed)
 	}
-	
+
 	fmt.Fprintf(w, "</ul>")
 	fmt.Fprintf(w, "</body></html>")
 }
@@ -77,7 +77,7 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	feedPath := filepath.Join(s.config.FeedsDir, feedName)
-	
+
 	if !s.isValidFeedPath(feedPath) {
 		http.NotFound(w, r)
 		return
@@ -95,7 +95,10 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/rss+xml")
 	w.Header().Set("Cache-Control", "max-age=3600")
-	w.Write(feedData)
+	if _, err := w.Write(feedData); err != nil {
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -125,8 +128,8 @@ func (s *Server) listFeeds() ([]string, error) {
 func (s *Server) isValidFeedPath(feedPath string) bool {
 	cleanPath := filepath.Clean(feedPath)
 	expectedDir := filepath.Clean(s.config.FeedsDir)
-	
-	return strings.HasPrefix(cleanPath, expectedDir) && 
-		   strings.HasSuffix(cleanPath, ".xml") &&
-		   !strings.Contains(feedPath, "..")
+
+	return strings.HasPrefix(cleanPath, expectedDir) &&
+		strings.HasSuffix(cleanPath, ".xml") &&
+		!strings.Contains(feedPath, "..")
 }

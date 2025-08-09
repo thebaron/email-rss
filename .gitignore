@@ -45,3 +45,7 @@ Thumbs.db
 
 # Log files
 *.log
+
+# coverage/test stuff
+coverage.html
+coverage*.out

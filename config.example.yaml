@@ -4,6 +4,7 @@ imap:
   username: "user@example.com"
   password: "your-password"
   tls: true
+  timeout: 30  # Connection timeout in seconds (default: 30)
   folders:
     "INBOX": "inbox"
     "INBOX/Important": "important"

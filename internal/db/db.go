@@ -13,12 +13,12 @@ type DB struct {
 }
 
 type ProcessedMessage struct {
-	ID       int64
-	Folder   string
-	UID      uint32
-	Subject  string
-	From     string
-	Date     time.Time
+	ID          int64
+	Folder      string
+	UID         uint32
+	Subject     string
+	From        string
+	Date        time.Time
 	ProcessedAt time.Time
 }
 
@@ -29,7 +29,7 @@ func New(dbPath string) (*DB, error) {
 	}
 
 	db := &DB{conn: conn}
-	
+
 	if err := db.migrate(); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("failed to migrate database: %v", err)
@@ -68,13 +68,13 @@ func (db *DB) migrate() error {
 
 func (db *DB) IsMessageProcessed(folder string, uid uint32) (bool, error) {
 	query := `SELECT COUNT(*) FROM processed_messages WHERE folder = ? AND uid = ?`
-	
+
 	var count int
 	err := db.conn.QueryRow(query, folder, uid).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if message is processed: %v", err)
 	}
-	
+
 	return count > 0, nil
 }
 
@@ -83,12 +83,12 @@ func (db *DB) MarkMessageProcessed(folder string, uid uint32, subject, from stri
 	INSERT OR REPLACE INTO processed_messages (folder, uid, subject, from_addr, date)
 	VALUES (?, ?, ?, ?, ?)
 	`
-	
+
 	_, err := db.conn.Exec(query, folder, uid, subject, from, date)
 	if err != nil {
 		return fmt.Errorf("failed to mark message as processed: %v", err)
 	}
-	
+
 	return nil
 }
 
@@ -100,13 +100,13 @@ func (db *DB) GetProcessedMessages(folder string, limit int) ([]ProcessedMessage
 	ORDER BY date DESC
 	LIMIT ?
 	`
-	
+
 	rows, err := db.conn.Query(query, folder, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get processed messages: %v", err)
 	}
 	defer rows.Close()
-	
+
 	var messages []ProcessedMessage
 	for rows.Next() {
 		var msg ProcessedMessage
@@ -116,33 +116,41 @@ func (db *DB) GetProcessedMessages(folder string, limit int) ([]ProcessedMessage
 		}
 		messages = append(messages, msg)
 	}
-	
+
 	return messages, nil
 }
 
 func (db *DB) ClearFolderHistory(folder string) error {
 	query := `DELETE FROM processed_messages WHERE folder = ?`
-	
+
 	_, err := db.conn.Exec(query, folder)
 	if err != nil {
 		return fmt.Errorf("failed to clear folder history: %v", err)
 	}
-	
+
 	return nil
 }
 
 func (db *DB) GetLastProcessedDate(folder string) (time.Time, error) {
 	query := `SELECT MAX(date) FROM processed_messages WHERE folder = ?`
-	
-	var lastDate sql.NullTime
-	err := db.conn.QueryRow(query, folder).Scan(&lastDate)
+
+	var lastDateStr sql.NullString
+	err := db.conn.QueryRow(query, folder).Scan(&lastDateStr)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to get last processed date: %v", err)
 	}
-	
-	if !lastDate.Valid {
+
+	if !lastDateStr.Valid || lastDateStr.String == "" {
 		return time.Time{}, nil
 	}
-	
-	return lastDate.Time, nil
+
+	lastDate, err := time.Parse("2006-01-02 15:04:05 -0700 MST", lastDateStr.String)
+	if err != nil {
+		lastDate, err = time.Parse(time.RFC3339, lastDateStr.String)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("failed to parse last processed date: %v", err)
+		}
+	}
+
+	return lastDate, nil
 }

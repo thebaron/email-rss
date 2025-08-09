@@ -20,7 +20,7 @@ import (
 
 type CLI struct {
 	Config string `short:"c" long:"config" default:"config.yaml" help:"Configuration file path"`
-	
+
 	Serve   ServeCmd   `cmd:"" help:"Start the RSS server"`
 	Process ProcessCmd `cmd:"" help:"Process emails and generate RSS feeds"`
 	Reset   ResetCmd   `cmd:"" help:"Reset folder history"`
@@ -102,7 +102,7 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 	proc := processor.New(imapClient, database, rssGenerator)
 
 	ctx := context.Background()
-	
+
 	if once {
 		return proc.ProcessFolders(ctx, cfg.IMAP.Folders)
 	}
@@ -114,7 +114,7 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 	defer ticker.Stop()
 
 	log.Println("Starting email processing loop...")
-	
+
 	for {
 		select {
 		case <-ticker.C:

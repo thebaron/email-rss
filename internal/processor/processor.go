@@ -54,9 +54,9 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 
 	var newMessages []rss.EmailMessage
 	for _, msg := range messages {
-		processed, err := p.database.IsMessageProcessed(folderPath, msg.UID)
-		if err != nil {
-			log.Printf("Failed to check if message is processed: %v", err)
+		processed, checkErr := p.database.IsMessageProcessed(folderPath, msg.UID)
+		if checkErr != nil {
+			log.Printf("Failed to check if message is processed: %v", checkErr)
 			continue
 		}
 
@@ -64,9 +64,9 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 			continue
 		}
 
-		body, err := p.imapClient.GetMessageBody(ctx, msg.UID)
-		if err != nil {
-			log.Printf("Failed to get message body for UID %d: %v", msg.UID, err)
+		body, bodyErr := p.imapClient.GetMessageBody(ctx, msg.UID)
+		if bodyErr != nil {
+			log.Printf("Failed to get message body for UID %d: %v", msg.UID, bodyErr)
 			body = ""
 		}
 
@@ -80,8 +80,8 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 
 		newMessages = append(newMessages, rssMsg)
 
-		if err := p.database.MarkMessageProcessed(folderPath, msg.UID, msg.Subject, msg.From, msg.Date); err != nil {
-			log.Printf("Failed to mark message as processed: %v", err)
+		if markErr := p.database.MarkMessageProcessed(folderPath, msg.UID, msg.Subject, msg.From, msg.Date); markErr != nil {
+			log.Printf("Failed to mark message as processed: %v", markErr)
 		}
 	}
 
@@ -118,7 +118,7 @@ func (p *Processor) ResetFolder(folderPath string) error {
 	if err := p.database.ClearFolderHistory(folderPath); err != nil {
 		return fmt.Errorf("failed to clear folder history: %v", err)
 	}
-	
+
 	log.Printf("Reset history for folder: %s", folderPath)
 	return nil
 }

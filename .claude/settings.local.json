@@ -5,7 +5,11 @@
       "Bash(go mod init:*)",
       "Bash(go get:*)",
       "Bash(go build:*)",
-      "Bash(./emailrss --help)"
+      "Bash(./emailrss --help)",
+      "Bash(go:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(./coverage.sh)"
     ],
     "deny": []
   }

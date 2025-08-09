@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
 type Config struct {
@@ -22,6 +22,7 @@ type IMAPConfig struct {
 	Username string            `koanf:"username" yaml:"username"`
 	Password string            `koanf:"password" yaml:"password"`
 	TLS      bool              `koanf:"tls" yaml:"tls"`
+	Timeout  int               `koanf:"timeout" yaml:"timeout"`
 	Folders  map[string]string `koanf:"folders" yaml:"folders"`
 }
 
@@ -42,7 +43,7 @@ type ServerConfig struct {
 
 func Load(configPath string) (*Config, error) {
 	k := koanf.New(".")
-	
+
 	if err := k.Load(file.Provider(configPath), yaml.Parser()); err != nil {
 		return nil, fmt.Errorf("error loading config file: %v", err)
 	}
@@ -82,6 +83,10 @@ func validate(config *Config) error {
 	}
 	if config.Server.Port == 0 {
 		config.Server.Port = 8080
+	}
+	if config.IMAP.Timeout == 0 {
+		config.IMAP.Timeout = 30
+		log.Printf("Using default IMAP timeout: %d seconds", config.IMAP.Timeout)
 	}
 	return nil
 }

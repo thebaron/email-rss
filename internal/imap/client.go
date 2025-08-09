@@ -23,6 +23,7 @@ type IMAPConfig struct {
 	Username string
 	Password string
 	TLS      bool
+	Timeout  int
 }
 
 type Message struct {
@@ -36,21 +37,33 @@ type Message struct {
 
 func NewClient(config IMAPConfig) (*Client, error) {
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	
+
+	timeout := time.Duration(config.Timeout) * time.Second
+	if config.Timeout == 0 {
+		timeout = 15 * time.Second
+	}
+
 	var conn net.Conn
 	var err error
-	
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(timeout))
+	defer cancel()
+
+	dialer := &net.Dialer{Timeout: timeout}
+
 	if config.TLS {
-		conn, err = tls.Dial("tcp", addr, &tls.Config{})
+		conn, err = tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{})
 	} else {
-		conn, err = net.Dial("tcp", addr)
+		conn, err = dialer.DialContext(ctx, "tcp", addr)
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to IMAP server: %v", err)
 	}
 
-	client := imapclient.New(conn, &imapclient.Options{})
+	client := imapclient.New(conn, &imapclient.Options{
+		Dialer: dialer,
+	})
 
 	if err := client.Login(config.Username, config.Password).Wait(); err != nil {
 		client.Close()
@@ -58,7 +71,7 @@ func NewClient(config IMAPConfig) (*Client, error) {
 	}
 
 	log.Printf("Connected to IMAP server %s as %s", config.Host, config.Username)
-	
+
 	return &Client{
 		client: client,
 		config: config,
@@ -74,7 +87,7 @@ func (c *Client) Close() error {
 
 func (c *Client) ListFolders(ctx context.Context) ([]string, error) {
 	mboxes := c.client.List("", "*", nil)
-	
+
 	var folders []string
 	for {
 		mbox := mboxes.Next()
@@ -83,7 +96,7 @@ func (c *Client) ListFolders(ctx context.Context) ([]string, error) {
 		}
 		folders = append(folders, mbox.Mailbox)
 	}
-	
+
 	return folders, nil
 }
 
@@ -114,7 +127,7 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 	}
 
 	msgs := c.client.Fetch(seqSet, fetchOptions)
-	
+
 	var messages []Message
 	for {
 		msg := msgs.Next()
@@ -156,7 +169,7 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 func (c *Client) GetMessageBody(ctx context.Context, uid uint32) (string, error) {
 	seqSet := imap.UIDSet{}
 	seqSet.AddNum(imap.UID(uid))
-	
+
 	fetchOptions := &imap.FetchOptions{
 		BodySection: []*imap.FetchItemBodySection{
 			{Specifier: imap.PartSpecifierText},
@@ -164,7 +177,7 @@ func (c *Client) GetMessageBody(ctx context.Context, uid uint32) (string, error)
 	}
 
 	msgs := c.client.Fetch(seqSet, fetchOptions)
-	
+
 	msg := msgs.Next()
 	if msg == nil {
 		return "", fmt.Errorf("failed to fetch message body")

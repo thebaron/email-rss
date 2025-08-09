@@ -52,7 +52,9 @@ func NewClient(config IMAPConfig) (*Client, error) {
 	dialer := &net.Dialer{Timeout: timeout}
 
 	if config.TLS {
-		conn, err = tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{})
+		conn, err = tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		})
 	} else {
 		conn, err = dialer.DialContext(ctx, "tcp", addr)
 	}
@@ -108,7 +110,10 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 
 	criteria := &imap.SearchCriteria{}
 	if !since.IsZero() {
+		log.Printf("Searching for messages since: %v", since)
 		criteria.Since = since
+	} else {
+		log.Printf("Searching for all messages (no since date)")
 	}
 
 	data, err := c.client.Search(criteria, nil).Wait()
@@ -116,14 +121,18 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 		return nil, fmt.Errorf("failed to search messages: %v", err)
 	}
 
-	if len(data.AllSeqNums()) == 0 {
+	seqNums := data.AllSeqNums()
+	log.Printf("Found %d messages in folder %s", len(seqNums), folder)
+
+	if len(seqNums) == 0 {
 		return nil, nil
 	}
 
-	seqSet := imap.SeqSetNum(data.AllSeqNums()...)
+	seqSet := imap.SeqSetNum(seqNums...)
 	fetchOptions := &imap.FetchOptions{
 		Flags:    true,
 		Envelope: true,
+		UID:      true,
 	}
 
 	msgs := c.client.Fetch(seqSet, fetchOptions)
@@ -137,10 +146,12 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 
 		buffer, err := msg.Collect()
 		if err != nil {
+			log.Printf("Failed to collect message: %v", err)
 			continue
 		}
 
 		if buffer.Envelope == nil {
+			log.Printf("Message has no envelope")
 			continue
 		}
 
@@ -150,6 +161,8 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 			Subject: buffer.Envelope.Subject,
 			Date:    buffer.Envelope.Date,
 		}
+
+		log.Printf("Message SeqNum=%d, UID=%d, Subject=%s", buffer.SeqNum, buffer.UID, buffer.Envelope.Subject)
 
 		if len(buffer.Envelope.From) > 0 {
 			addr := buffer.Envelope.From[0]
@@ -163,6 +176,7 @@ func (c *Client) GetMessages(ctx context.Context, folder string, since time.Time
 		messages = append(messages, message)
 	}
 
+	log.Printf("Successfully processed %d messages", len(messages))
 	return messages, nil
 }
 
@@ -188,10 +202,29 @@ func (c *Client) GetMessageBody(ctx context.Context, uid uint32) (string, error)
 		return "", fmt.Errorf("failed to collect message data: %v", err)
 	}
 
-	body := buffer.FindBodySection(&imap.FetchItemBodySection{Specifier: imap.PartSpecifierText})
-	if body != nil {
-		return string(body), nil
+	// Try to get text/plain body
+	textBody := buffer.FindBodySection(&imap.FetchItemBodySection{Specifier: imap.PartSpecifierText})
+	
+	if textBody != nil && len(textBody) > 0 {
+		finalBody := string(textBody)
+		log.Printf("Retrieved text body for UID %d: %d characters", uid, len(finalBody))
+		return finalBody, nil
 	}
 
+	// If no text body, try to get any body content
+	for i := 1; i <= 3; i++ {
+		bodySection := buffer.FindBodySection(&imap.FetchItemBodySection{
+			Specifier: imap.PartSpecifierNone,
+			Part:      []int{i},
+		})
+		if bodySection != nil && len(bodySection) > 0 {
+			finalBody := string(bodySection)
+			log.Printf("Retrieved body part %d for UID %d: %d characters", i, uid, len(finalBody))
+			return finalBody, nil
+		}
+	}
+
+	log.Printf("No body found for UID %d", uid)
 	return "", nil
 }
+

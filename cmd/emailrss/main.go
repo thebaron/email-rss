@@ -84,6 +84,7 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 		Username: cfg.IMAP.Username,
 		Password: cfg.IMAP.Password,
 		TLS:      cfg.IMAP.TLS,
+		Timeout:  cfg.IMAP.Timeout,
 	}
 
 	imapClient, err := imap.NewClient(imapConfig)
@@ -114,6 +115,11 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 	defer ticker.Stop()
 
 	log.Println("Starting email processing loop...")
+	
+	// Process immediately on startup
+	if err := proc.ProcessFolders(ctx, cfg.IMAP.Folders); err != nil {
+		log.Printf("Initial processing failed: %v", err)
+	}
 
 	for {
 		select {
@@ -135,6 +141,7 @@ func runReset(cfg *config.Config, database *db.DB, folderPath string) error {
 		Username: cfg.IMAP.Username,
 		Password: cfg.IMAP.Password,
 		TLS:      cfg.IMAP.TLS,
+		Timeout:  cfg.IMAP.Timeout,
 	}
 
 	imapClient, err := imap.NewClient(imapConfig)

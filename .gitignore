@@ -49,3 +49,8 @@ Thumbs.db
 # coverage/test stuff
 coverage.html
 coverage*.out
+
+# ignore config.yaml please
+config.yaml
+data/
+feeds/

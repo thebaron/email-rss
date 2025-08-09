@@ -52,8 +52,11 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 		return fmt.Errorf("failed to get messages: %v", err)
 	}
 
+	log.Printf("Retrieved %d messages from IMAP for processing", len(messages))
+
 	var newMessages []rss.EmailMessage
 	for _, msg := range messages {
+		log.Printf("Processing message UID %d: %s", msg.UID, msg.Subject)
 		processed, checkErr := p.database.IsMessageProcessed(folderPath, msg.UID)
 		if checkErr != nil {
 			log.Printf("Failed to check if message is processed: %v", checkErr)
@@ -61,8 +64,11 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 		}
 
 		if processed {
+			log.Printf("Message UID %d already processed, skipping", msg.UID)
 			continue
 		}
+
+		log.Printf("Message UID %d is new, processing", msg.UID)
 
 		body, bodyErr := p.imapClient.GetMessageBody(ctx, msg.UID)
 		if bodyErr != nil {
@@ -78,6 +84,8 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 			Body:    body,
 		}
 
+		log.Printf("Created RSS message for UID %d with body length: %d", msg.UID, len(body))
+
 		newMessages = append(newMessages, rssMsg)
 
 		if markErr := p.database.MarkMessageProcessed(folderPath, msg.UID, msg.Subject, msg.From, msg.Date); markErr != nil {
@@ -90,23 +98,13 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 		return nil
 	}
 
-	allMessages, err := p.database.GetProcessedMessages(folderPath, 50)
-	if err != nil {
-		return fmt.Errorf("failed to get processed messages: %v", err)
-	}
+	// For now, just use the new messages with bodies for the RSS feed
+	// TODO: In the future, we could store message bodies in the database
+	// and retrieve them for older messages as well
+	
+	log.Printf("Generating RSS feed with %d new messages (all have bodies)", len(newMessages))
 
-	var feedMessages []rss.EmailMessage
-	for _, dbMsg := range allMessages {
-		feedMsg := rss.EmailMessage{
-			UID:     dbMsg.UID,
-			Subject: dbMsg.Subject,
-			From:    dbMsg.From,
-			Date:    dbMsg.Date,
-		}
-		feedMessages = append(feedMessages, feedMsg)
-	}
-
-	if err := p.rssGenerator.GenerateFeed(folderPath, feedName, feedMessages, p.aiHooks); err != nil {
+	if err := p.rssGenerator.GenerateFeed(folderPath, feedName, newMessages, p.aiHooks); err != nil {
 		return fmt.Errorf("failed to generate RSS feed: %v", err)
 	}
 

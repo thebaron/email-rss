@@ -1,8 +1,8 @@
 # EmailRSS
 
-[![CI](https://github.com/thebaron/emailrss/actions/workflows/ci.yml/badge.svg)](https://github.com/thebaron/emailrss/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/thebaron/emailrss/branch/main/graph/badge.svg)](https://codecov.io/gh/thebaron/emailrss)
-[![Go Report Card](https://goreportcard.com/badge/github.com/thebaron/emailrss)](https://goreportcard.com/report/github.com/thebaron/emailrss)
+[![CI](https://github.com/thebaron/email-rss/actions/workflows/ci.yml/badge.svg)](https://github.com/thebaron/email-rss/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/thebaron/email-rss/graph/badge.svg?token=G0H7CCPB3B)](https://codecov.io/gh/thebaron/email-rss)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thebaron/email-rss)](https://goreportcard.com/report/github.com/thebaron/email-rss)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Convert email folders into RSS feeds for reading in RSS readers.

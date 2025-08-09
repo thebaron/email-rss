@@ -45,6 +45,7 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Generate coverage report
       run: go tool cover -html=coverage.out -o coverage.html

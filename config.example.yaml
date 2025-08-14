@@ -17,7 +17,22 @@ rss:
   output_dir: "./feeds"
   title: "Email RSS Feeds"
   base_url: "http://localhost:8080"
+  # Content length limits (optional)
+  max_html_content_length: 8000      # Max chars for processing HTML content
+  max_text_content_length: 3000      # Max chars for processing text content  
+  max_rss_html_length: 5000          # Max chars for RSS HTML content
+  max_rss_text_length: 2900          # Max chars for RSS text content
+  max_summary_length: 300            # Max chars for item summaries
+  # CSS removal (optional, default: false)
+  remove_css: false                  # Remove CSS styling, HTML comments, and bgcolor attributes from HTML emails
 
 server:
   host: "0.0.0.0"
   port: 8080
+
+# Debug options (optional, all default to false/disabled)
+debug:
+  enabled: false                     # Enable debug mode
+  raw_messages_dir: "./debug/raw_messages"  # Directory for raw IMAP messages
+  save_raw_messages: false           # Save raw IMAP messages to disk
+  max_raw_messages: 100              # Maximum number of raw messages to keep

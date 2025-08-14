@@ -4,20 +4,27 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"emailrss/internal/db"
 	"emailrss/internal/imap"
 	"emailrss/internal/rss"
 )
 
+// IMAPClient interface defines the methods needed from the IMAP client
+type IMAPClient interface {
+	GetMessages(ctx context.Context, folder string, since time.Time) ([]imap.Message, error)
+	GetMessageContent(ctx context.Context, uid uint32) (*imap.MessageContent, error)
+}
+
 type Processor struct {
-	imapClient   *imap.Client
+	imapClient   IMAPClient
 	database     *db.DB
 	rssGenerator *rss.Generator
 	aiHooks      rss.AIHooks
 }
 
-func New(imapClient *imap.Client, database *db.DB, rssGenerator *rss.Generator) *Processor {
+func New(imapClient IMAPClient, database *db.DB, rssGenerator *rss.Generator) *Processor {
 	return &Processor{
 		imapClient:   imapClient,
 		database:     database,
@@ -70,21 +77,25 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 
 		log.Printf("Message UID %d is new, processing", msg.UID)
 
-		body, bodyErr := p.imapClient.GetMessageBody(ctx, msg.UID)
-		if bodyErr != nil {
-			log.Printf("Failed to get message body for UID %d: %v", msg.UID, bodyErr)
-			body = ""
+		// Get both text and HTML content  
+		content, contentErr := p.imapClient.GetMessageContent(ctx, msg.UID)
+		if contentErr != nil {
+			log.Printf("Failed to get message content for UID %d: %v", msg.UID, contentErr)
+			// Create empty content if error
+			content = &imap.MessageContent{TextBody: "", HTMLBody: ""}
 		}
 
 		rssMsg := rss.EmailMessage{
-			UID:     msg.UID,
-			Subject: msg.Subject,
-			From:    msg.From,
-			Date:    msg.Date,
-			Body:    body,
+			UID:      msg.UID,
+			Subject:  msg.Subject,
+			From:     msg.From,
+			Date:     msg.Date,
+			TextBody: content.TextBody,
+			HTMLBody: content.HTMLBody,
 		}
 
-		log.Printf("Created RSS message for UID %d with body length: %d", msg.UID, len(body))
+		log.Printf("Created RSS message for UID %d with text: %d chars, HTML: %d chars", 
+			msg.UID, len(content.TextBody), len(content.HTMLBody))
 
 		newMessages = append(newMessages, rssMsg)
 
@@ -102,10 +113,16 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 	// TODO: In the future, we could store message bodies in the database
 	// and retrieve them for older messages as well
 	
-	log.Printf("Generating RSS feed with %d new messages (all have bodies)", len(newMessages))
+	log.Printf("Generating RSS and JSON feeds with %d new messages (all have bodies)", len(newMessages))
 
+	// Generate RSS feed
 	if err := p.rssGenerator.GenerateFeed(folderPath, feedName, newMessages, p.aiHooks); err != nil {
 		return fmt.Errorf("failed to generate RSS feed: %v", err)
+	}
+
+	// Generate JSON feed
+	if err := p.rssGenerator.GenerateJSONFeed(folderPath, feedName, newMessages, p.aiHooks); err != nil {
+		return fmt.Errorf("failed to generate JSON feed: %v", err)
 	}
 
 	log.Printf("Processed %d new messages for folder %s", len(newMessages), folderPath)

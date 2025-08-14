@@ -48,7 +48,13 @@ func TestIMAPConfigValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, err := NewClient(tt.config)
+			debugConfig := DebugConfig{
+				Enabled:         false,
+				RawMessagesDir:  "./debug",
+				SaveRawMessages: false,
+				MaxRawMessages:  100,
+			}
+			client, err := NewClient(tt.config, debugConfig)
 
 			if tt.valid {
 				if client == nil && err != nil {

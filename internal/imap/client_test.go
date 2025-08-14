@@ -47,7 +47,13 @@ func TestNewClient(t *testing.T) {
 				t.Skip(tt.skipReason)
 			}
 
-			client, err := NewClient(tt.config)
+			debugConfig := DebugConfig{
+				Enabled:         false,
+				RawMessagesDir:  "./debug",
+				SaveRawMessages: false,
+				MaxRawMessages:  100,
+			}
+			client, err := NewClient(tt.config, debugConfig)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -99,7 +105,13 @@ func TestListFolders_RequiresIntegration(t *testing.T) {
 		Timeout:  1,
 	}
 
-	client, err := NewClient(config)
+	debugConfig := DebugConfig{
+		Enabled:         false,
+		RawMessagesDir:  "./debug",
+		SaveRawMessages: false,
+		MaxRawMessages:  100,
+	}
+	client, err := NewClient(config, debugConfig)
 	if err != nil {
 		t.Skip("Could not connect to IMAP server")
 	}
@@ -125,7 +137,13 @@ func TestGetMessages_RequiresIntegration(t *testing.T) {
 		Timeout:  1,
 	}
 
-	client, err := NewClient(config)
+	debugConfig := DebugConfig{
+		Enabled:         false,
+		RawMessagesDir:  "./debug",
+		SaveRawMessages: false,
+		MaxRawMessages:  100,
+	}
+	client, err := NewClient(config, debugConfig)
 	if err != nil {
 		t.Skip("Could not connect to IMAP server")
 	}
@@ -150,7 +168,13 @@ func TestGetMessageBody_RequiresIntegration(t *testing.T) {
 		Timeout:  1,
 	}
 
-	client, err := NewClient(config)
+	debugConfig := DebugConfig{
+		Enabled:         false,
+		RawMessagesDir:  "./debug",
+		SaveRawMessages: false,
+		MaxRawMessages:  100,
+	}
+	client, err := NewClient(config, debugConfig)
 	if err != nil {
 		t.Skip("Could not connect to IMAP server")
 	}
@@ -197,7 +221,13 @@ func TestConnectionErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, err := NewClient(tt.config)
+			debugConfig := DebugConfig{
+				Enabled:         false,
+				RawMessagesDir:  "./debug",
+				SaveRawMessages: false,
+				MaxRawMessages:  100,
+			}
+			client, err := NewClient(tt.config, debugConfig)
 			assert.Error(t, err)
 			assert.Nil(t, client)
 		})
@@ -214,7 +244,13 @@ func TestNonTLSConnection(t *testing.T) {
 		Timeout:  1,
 	}
 
-	client, err := NewClient(config)
+	debugConfig := DebugConfig{
+		Enabled:         false,
+		RawMessagesDir:  "./debug",
+		SaveRawMessages: false,
+		MaxRawMessages:  100,
+	}
+	client, err := NewClient(config, debugConfig)
 	assert.Error(t, err)
 	assert.Nil(t, client)
 }

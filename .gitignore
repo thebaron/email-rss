@@ -54,3 +54,8 @@ coverage*.out
 config.yaml
 data/
 feeds/
+raw/
+debug/
+
+# ai stuff
+.claude

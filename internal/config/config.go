@@ -14,6 +14,7 @@ type Config struct {
 	Database DatabaseConfig `koanf:"database" yaml:"database"`
 	RSS      RSSConfig      `koanf:"rss" yaml:"rss"`
 	Server   ServerConfig   `koanf:"server" yaml:"server"`
+	Debug    DebugConfig    `koanf:"debug" yaml:"debug"`
 }
 
 type IMAPConfig struct {
@@ -31,14 +32,27 @@ type DatabaseConfig struct {
 }
 
 type RSSConfig struct {
-	OutputDir string `koanf:"output_dir" yaml:"output_dir"`
-	Title     string `koanf:"title" yaml:"title"`
-	BaseURL   string `koanf:"base_url" yaml:"base_url"`
+	OutputDir           string `koanf:"output_dir" yaml:"output_dir"`
+	Title               string `koanf:"title" yaml:"title"`
+	BaseURL             string `koanf:"base_url" yaml:"base_url"`
+	MaxHTMLContentLength int   `koanf:"max_html_content_length" yaml:"max_html_content_length"`
+	MaxTextContentLength int   `koanf:"max_text_content_length" yaml:"max_text_content_length"`
+	MaxRSSHTMLLength     int   `koanf:"max_rss_html_length" yaml:"max_rss_html_length"`
+	MaxRSSTextLength     int   `koanf:"max_rss_text_length" yaml:"max_rss_text_length"`
+	MaxSummaryLength     int   `koanf:"max_summary_length" yaml:"max_summary_length"`
+	RemoveCSS            bool  `koanf:"remove_css" yaml:"remove_css"`
 }
 
 type ServerConfig struct {
 	Host string `koanf:"host" yaml:"host"`
 	Port int    `koanf:"port" yaml:"port"`
+}
+
+type DebugConfig struct {
+	Enabled           bool   `koanf:"enabled" yaml:"enabled"`
+	RawMessagesDir    string `koanf:"raw_messages_dir" yaml:"raw_messages_dir"`
+	SaveRawMessages   bool   `koanf:"save_raw_messages" yaml:"save_raw_messages"`
+	MaxRawMessages    int    `koanf:"max_raw_messages" yaml:"max_raw_messages"`
 }
 
 func Load(configPath string) (*Config, error) {
@@ -88,5 +102,31 @@ func validate(config *Config) error {
 		config.IMAP.Timeout = 30
 		log.Printf("Using default IMAP timeout: %d seconds", config.IMAP.Timeout)
 	}
+	
+	// Set default content length limits
+	if config.RSS.MaxHTMLContentLength == 0 {
+		config.RSS.MaxHTMLContentLength = 8000
+	}
+	if config.RSS.MaxTextContentLength == 0 {
+		config.RSS.MaxTextContentLength = 3000
+	}
+	if config.RSS.MaxRSSHTMLLength == 0 {
+		config.RSS.MaxRSSHTMLLength = 5000
+	}
+	if config.RSS.MaxRSSTextLength == 0 {
+		config.RSS.MaxRSSTextLength = 2900
+	}
+	if config.RSS.MaxSummaryLength == 0 {
+		config.RSS.MaxSummaryLength = 300
+	}
+	
+	// Set default debug configuration values
+	if config.Debug.RawMessagesDir == "" {
+		config.Debug.RawMessagesDir = "./debug/raw_messages"
+	}
+	if config.Debug.MaxRawMessages == 0 {
+		config.Debug.MaxRawMessages = 100 // Default to keeping last 100 raw messages
+	}
+	
 	return nil
 }

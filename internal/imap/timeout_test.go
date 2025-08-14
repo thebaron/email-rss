@@ -47,7 +47,13 @@ func TestNewClientTimeout(t *testing.T) {
 			}
 
 			start := time.Now()
-			client, err := NewClient(tt.config)
+			debugConfig := DebugConfig{
+				Enabled:         false,
+				RawMessagesDir:  "./debug",
+				SaveRawMessages: false,
+				MaxRawMessages:  100,
+			}
+			client, err := NewClient(tt.config, debugConfig)
 			elapsed := time.Since(start)
 
 			if tt.expectedError {

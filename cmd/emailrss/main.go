@@ -87,16 +87,29 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 		Timeout:  cfg.IMAP.Timeout,
 	}
 
-	imapClient, err := imap.NewClient(imapConfig)
+	debugConfig := imap.DebugConfig{
+		Enabled:         cfg.Debug.Enabled,
+		RawMessagesDir:  cfg.Debug.RawMessagesDir,
+		SaveRawMessages: cfg.Debug.SaveRawMessages,
+		MaxRawMessages:  cfg.Debug.MaxRawMessages,
+	}
+
+	imapClient, err := imap.NewClient(imapConfig, debugConfig)
 	if err != nil {
 		return err
 	}
 	defer imapClient.Close()
 
 	rssConfig := rss.RSSConfig{
-		OutputDir: cfg.RSS.OutputDir,
-		Title:     cfg.RSS.Title,
-		BaseURL:   cfg.RSS.BaseURL,
+		OutputDir:               cfg.RSS.OutputDir,
+		Title:                   cfg.RSS.Title,
+		BaseURL:                 cfg.RSS.BaseURL,
+		MaxHTMLContentLength:    cfg.RSS.MaxHTMLContentLength,
+		MaxTextContentLength:    cfg.RSS.MaxTextContentLength,
+		MaxRSSHTMLLength:        cfg.RSS.MaxRSSHTMLLength,
+		MaxRSSTextLength:        cfg.RSS.MaxRSSTextLength,
+		MaxSummaryLength:        cfg.RSS.MaxSummaryLength,
+		RemoveCSS:               cfg.RSS.RemoveCSS,
 	}
 
 	rssGenerator := rss.NewGenerator(rssConfig)
@@ -144,16 +157,29 @@ func runReset(cfg *config.Config, database *db.DB, folderPath string) error {
 		Timeout:  cfg.IMAP.Timeout,
 	}
 
-	imapClient, err := imap.NewClient(imapConfig)
+	debugConfig := imap.DebugConfig{
+		Enabled:         cfg.Debug.Enabled,
+		RawMessagesDir:  cfg.Debug.RawMessagesDir,
+		SaveRawMessages: cfg.Debug.SaveRawMessages,
+		MaxRawMessages:  cfg.Debug.MaxRawMessages,
+	}
+
+	imapClient, err := imap.NewClient(imapConfig, debugConfig)
 	if err != nil {
 		return err
 	}
 	defer imapClient.Close()
 
 	rssConfig := rss.RSSConfig{
-		OutputDir: cfg.RSS.OutputDir,
-		Title:     cfg.RSS.Title,
-		BaseURL:   cfg.RSS.BaseURL,
+		OutputDir:               cfg.RSS.OutputDir,
+		Title:                   cfg.RSS.Title,
+		BaseURL:                 cfg.RSS.BaseURL,
+		MaxHTMLContentLength:    cfg.RSS.MaxHTMLContentLength,
+		MaxTextContentLength:    cfg.RSS.MaxTextContentLength,
+		MaxRSSHTMLLength:        cfg.RSS.MaxRSSHTMLLength,
+		MaxRSSTextLength:        cfg.RSS.MaxRSSTextLength,
+		MaxSummaryLength:        cfg.RSS.MaxSummaryLength,
+		RemoveCSS:               cfg.RSS.RemoveCSS,
 	}
 
 	rssGenerator := rss.NewGenerator(rssConfig)

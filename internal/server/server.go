@@ -72,8 +72,16 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !strings.HasSuffix(feedName, ".xml") {
+	// Determine feed type and set appropriate extension
+	var contentType string
+	if strings.HasSuffix(feedName, ".json") {
+		contentType = "application/feed+json"
+	} else if strings.HasSuffix(feedName, ".xml") {
+		contentType = "application/rss+xml"
+	} else {
+		// Default to XML if no extension specified
 		feedName += ".xml"
+		contentType = "application/rss+xml"
 	}
 
 	feedPath := filepath.Join(s.config.FeedsDir, feedName)
@@ -93,7 +101,7 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/rss+xml")
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "max-age=3600")
 	if _, err := w.Write(feedData); err != nil {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -117,7 +125,7 @@ func (s *Server) listFeeds() ([]string, error) {
 
 	var feeds []string
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".xml") {
+		if !entry.IsDir() && (strings.HasSuffix(entry.Name(), ".xml") || strings.HasSuffix(entry.Name(), ".json")) {
 			feeds = append(feeds, entry.Name())
 		}
 	}
@@ -130,6 +138,6 @@ func (s *Server) isValidFeedPath(feedPath string) bool {
 	expectedDir := filepath.Clean(s.config.FeedsDir)
 
 	return strings.HasPrefix(cleanPath, expectedDir) &&
-		strings.HasSuffix(cleanPath, ".xml") &&
+		(strings.HasSuffix(cleanPath, ".xml") || strings.HasSuffix(cleanPath, ".json")) &&
 		!strings.Contains(feedPath, "..")
 }

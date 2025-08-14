@@ -1,0 +1,8 @@
+{
+  "uid": 98765,
+  "subject": "System Notification - Server Maintenance",
+  "from": "admin@techcorp.com",
+  "date": "2025-08-05T18:45:00Z",
+  "text_body": "",
+  "html_body": "This is a multi-part message in MIME format\n\n--_----------=_MCPart_987654321\nContent-Type: text/plain; charset=\"utf-8\"; format=\"fixed\"\nContent-Transfer-Encoding: quoted-printable\n\nScheduled maintenance notification:\n\nOur servers will be offline for maintenance on Saturday=2C August 10th.\nExpected downtime: 2=2D4 hours starting at 2=3A00 AM UTC.\n\nServices affected:\n=2D Email processing\n=2D File uploads\n=2D API endpoints\n\nWe apologize for any inconvenience.\n\nTech Support Team\n\n--_----------=_MCPart_987654321--"
+}

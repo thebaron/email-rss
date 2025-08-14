@@ -1,0 +1,54 @@
+# EmailRSS Configuration Example with Debug Mode
+# This example shows how to enable debug mode to capture raw IMAP messages
+
+imap:
+  host: "imap.gmail.com"
+  port: 993
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  tls: true
+  timeout: 30
+  folders:
+    INBOX: "inbox"
+    Important: "important"
+
+database:
+  path: "./emailrss.db"
+
+rss:
+  output_dir: "./feeds"
+  title: "My Email RSS Feeds"
+  base_url: "http://localhost:8080"
+  # Content length limits (configurable)
+  max_html_content_length: 8000
+  max_text_content_length: 3000
+  max_rss_html_length: 5000
+  max_rss_text_length: 2900
+  max_summary_length: 300
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+# Debug configuration - useful for troubleshooting IMAP message processing
+debug:
+  enabled: true                          # Enable debug mode
+  raw_messages_dir: "./debug/raw_messages" # Directory to store raw message files
+  save_raw_messages: true                # Save raw IMAP messages to disk
+  max_raw_messages: 50                   # Maximum number of raw messages to keep per folder
+
+# When debug mode is enabled:
+# - Raw IMAP message data will be saved to disk in the specified directory
+# - Files are named with timestamp and UID: YYYYMMDD_HHMMSS_uid_12345.eml
+# - Directory structure: debug/raw_messages/FOLDER_NAME/
+# - Old files are automatically cleaned up when max_raw_messages is exceeded
+# - Files contain headers, body sections, and text parts as received from IMAP server
+#
+# Debug files are helpful for:
+# - Understanding how messages are structured
+# - Debugging MIME parsing issues
+# - Troubleshooting content extraction problems
+# - Providing examples when reporting bugs
+#
+# WARNING: Debug files may contain sensitive email content. 
+# Ensure proper file permissions and cleanup when sharing debug information.

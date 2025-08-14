@@ -1,0 +1,8 @@
+{
+  "uid": 54321,
+  "subject": "Monthly Newsletter - August 2025",
+  "from": "newsletter@example.com",
+  "date": "2025-08-01T09:00:00Z",
+  "text_body": "Monthly Newsletter\n\nFeatured Article: AI in Business\nRead about the latest trends in artificial intelligence.\n\nUpcoming Events:\n- Tech Conference: August 15\n- Webinar: August 22\n\nVisit our website for more information.",
+  "html_body": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Monthly Newsletter</title>\n</head>\n<body>\n  <h1>Monthly Newsletter</h1>\n  <h2>Featured Article: AI in Business</h2>\n  <p>Read about the latest trends in <strong>artificial intelligence</strong>.</p>\n  \n  <h2>Upcoming Events:</h2>\n  <ul>\n    <li>Tech Conference: August 15</li>\n    <li>Webinar: August 22</li>\n  </ul>\n  \n  <p>Visit our <a href=\"https://example.com\">website</a> for more information.</p>\n</body>\n</html>"
+}

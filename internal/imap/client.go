@@ -311,7 +311,9 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 		}
 
 		boundary = params["boundary"]
-		// fmt.Printf("boundary: %s\n", boundary)
+		if c.debugConfig.Enabled {
+			log.Printf("boundary: %s\n", boundary)
+		}
 	}
 
 	var part []byte
@@ -333,10 +335,14 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 						ctype := p.Header.Get("Content-Type")
 						if strings.HasPrefix(ctype, "text/plain") {
 							content.TextBody = string(slurp)
-							// fmt.Printf("text part: %s\n", content.TextBody)
+							if c.debugConfig.Enabled {
+								log.Printf("text part: %s\n", content.TextBody)
+							}
 						} else if strings.HasPrefix(ctype, "text/html") {
 							content.HTMLBody = string(slurp)
-							// fmt.Printf("html part: %s\n", content.HTMLBody)
+							if c.debugConfig.Enabled {
+								log.Printf("html part: %s\n", content.HTMLBody)
+							}
 						}
 					}
 				} else {

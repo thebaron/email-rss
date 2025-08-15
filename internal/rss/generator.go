@@ -109,10 +109,10 @@ func (g *Generator) GenerateFeed(folder, feedName string, messages []EmailMessag
 			summary = contentForSummary
 		}
 
-		log.Printf("Summary for UID %d length: %d", msg.UID, len(summary))
+		// log.Printf("Summary for UID %d length: %d", msg.UID, len(summary))
 
 		processedContent := g.processContent(summary)
-		log.Printf("Processed content for UID %d length: %d", msg.UID, len(processedContent))
+		// log.Printf("Processed content for UID %d length: %d", msg.UID, len(processedContent))
 
 		item := &feeds.Item{
 			Title:       msg.Subject,
@@ -191,8 +191,8 @@ func (g *Generator) GenerateJSONFeed(folder, feedName string, messages []EmailMe
 			contentText = g.stripHTML(contentHTML)
 		}
 
-		log.Printf("Final content for UID %d - HTML: %d chars, Text: %d chars",
-			msg.UID, len(contentHTML), len(contentText))
+		// log.Printf("Final content for UID %d - HTML: %d chars, Text: %d chars",
+		// 	msg.UID, len(contentHTML), len(contentText))
 
 		item := JSONItem{
 			ID:            fmt.Sprintf("%s_%d", folder, msg.UID),
@@ -232,7 +232,7 @@ func (g *Generator) GenerateJSONFeed(folder, feedName string, messages []EmailMe
 }
 
 func (g *Generator) processContent(content string) string {
-	log.Printf("processContent input: %d characters", len(content))
+	// log.Printf("processContent input: %d characters", len(content))
 
 	if len(content) == 0 {
 		log.Printf("processContent: empty content, returning empty string")
@@ -258,7 +258,7 @@ func (g *Generator) processContent(content string) string {
 		} else {
 			result = processedHTML
 		}
-		log.Printf("processContent: HTML content processed, output length: %d", len(result))
+		// log.Printf("processContent: HTML content processed, output length: %d", len(result))
 	} else {
 		// Content is plain text, wrap in <pre> to preserve formatting
 		escapedContent := html.EscapeString(content)
@@ -273,7 +273,7 @@ func (g *Generator) processContent(content string) string {
 			}
 			result = fmt.Sprintf("<pre>%s</pre>", innerContent)
 		}
-		log.Printf("processContent: text content processed, output length: %d", len(result))
+		// log.Printf("processContent: text content processed, output length: %d", len(result))
 	}
 
 	return result
@@ -369,7 +369,7 @@ func (g *Generator) fixUTF8Encoding(input string) string {
 }
 
 func (g *Generator) processHTMLContent(content string) string {
-	log.Printf("processHTMLContent input: %d characters", len(content))
+	// log.Printf("processHTMLContent input: %d characters", len(content))
 
 	if len(content) == 0 {
 		return ""
@@ -383,12 +383,12 @@ func (g *Generator) processHTMLContent(content string) string {
 		content = content[:g.config.MaxHTMLContentLength] + "..."
 	}
 
-	log.Printf("processHTMLContent output: %d characters", len(content))
+	// log.Printf("processHTMLContent output: %d characters", len(content))
 	return content
 }
 
 func (g *Generator) processTextContent(content string) string {
-	log.Printf("processTextContent input: %d characters", len(content))
+	// log.Printf("processTextContent input: %d characters", len(content))
 
 	if len(content) == 0 {
 		return ""
@@ -399,7 +399,7 @@ func (g *Generator) processTextContent(content string) string {
 		content = content[:g.config.MaxTextContentLength] + "..."
 	}
 
-	log.Printf("processTextContent output: %d characters", len(content))
+	// log.Printf("processTextContent output: %d characters", len(content))
 	return content
 }
 

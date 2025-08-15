@@ -77,7 +77,7 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 
 		log.Printf("Message UID %d is new, processing", msg.UID)
 
-		// Get both text and HTML content  
+		// Get both text and HTML content
 		content, contentErr := p.imapClient.GetMessageContent(ctx, msg.UID)
 		if contentErr != nil {
 			log.Printf("Failed to get message content for UID %d: %v", msg.UID, contentErr)
@@ -94,8 +94,8 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 			HTMLBody: content.HTMLBody,
 		}
 
-		log.Printf("Created RSS message for UID %d with text: %d chars, HTML: %d chars", 
-			msg.UID, len(content.TextBody), len(content.HTMLBody))
+		// log.Printf("Created RSS message for UID %d with text: %d chars, HTML: %d chars",
+		// 	msg.UID, len(content.TextBody), len(content.HTMLBody))
 
 		newMessages = append(newMessages, rssMsg)
 
@@ -112,7 +112,7 @@ func (p *Processor) processFolder(ctx context.Context, folderPath, feedName stri
 	// For now, just use the new messages with bodies for the RSS feed
 	// TODO: In the future, we could store message bodies in the database
 	// and retrieve them for older messages as well
-	
+
 	log.Printf("Generating RSS and JSON feeds with %d new messages (all have bodies)", len(newMessages))
 
 	// Generate RSS feed

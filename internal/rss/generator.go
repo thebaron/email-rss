@@ -239,10 +239,6 @@ func (g *Generator) processContent(content string) string {
 		return ""
 	}
 
-	// Clean MIME multipart headers and boundaries
-	content = g.cleanMIMEContent(content)
-	log.Printf("processContent: after MIME cleaning: %d characters", len(content))
-
 	// Check if content is already HTML
 	isHTML := strings.Contains(strings.ToLower(content), "<html") ||
 		strings.Contains(strings.ToLower(content), "<body") ||
@@ -279,79 +275,6 @@ func (g *Generator) processContent(content string) string {
 		}
 		log.Printf("processContent: text content processed, output length: %d", len(result))
 	}
-
-	return result
-}
-
-func (g *Generator) cleanMIMEContent(content string) string {
-	lines := strings.Split(content, "\n")
-	var cleanedLines []string
-	var inMIMEHeaders bool = true
-
-	for i, line := range lines {
-		line = strings.TrimSpace(line)
-
-		// Skip common MIME header patterns
-		if inMIMEHeaders {
-			// Skip MIME multipart introduction
-			if strings.Contains(line, "This is a multi-part message in MIME format") ||
-				strings.Contains(line, "This is a multipart message in MIME format") {
-				continue
-			}
-
-			// Skip MIME boundary markers
-			if strings.HasPrefix(line, "--") && (strings.Contains(line, "=_") || strings.Contains(line, "_Part_")) {
-				continue
-			}
-
-			// Skip Content-Type headers
-			if strings.HasPrefix(line, "Content-Type:") {
-				continue
-			}
-
-			// Skip Content-Transfer-Encoding headers
-			if strings.HasPrefix(line, "Content-Transfer-Encoding:") {
-				continue
-			}
-
-			// Skip Content-Disposition headers
-			if strings.HasPrefix(line, "Content-Disposition:") {
-				continue
-			}
-
-			// Skip charset and format specifications
-			if strings.Contains(line, "charset=") || strings.Contains(line, "format=") {
-				continue
-			}
-
-			// If we hit a line that's not empty and not a header, we're past the MIME headers
-			if line != "" && !strings.Contains(line, ":") {
-				inMIMEHeaders = false
-				cleanedLines = append(cleanedLines, lines[i]) // Use original line with spacing
-			}
-		} else {
-			// We're past headers, include all content but skip boundary markers
-			if strings.HasPrefix(line, "--") && (strings.Contains(line, "=_") || strings.Contains(line, "_Part_")) {
-				continue
-			}
-			cleanedLines = append(cleanedLines, lines[i]) // Use original line with spacing
-		}
-	}
-
-	result := strings.Join(cleanedLines, "\n")
-
-	// Decode quoted-printable encoding
-	beforeDecode := len(result)
-	result = g.decodeQuotedPrintable(result)
-	log.Printf("cleanMIMEContent: quoted-printable decode: %d -> %d characters", beforeDecode, len(result))
-
-	// Fix UTF-8 encoding issues
-	beforeUTF8Fix := len(result)
-	result = g.fixUTF8Encoding(result)
-	log.Printf("cleanMIMEContent: UTF-8 fix: %d -> %d characters", beforeUTF8Fix, len(result))
-
-	// Clean up excessive whitespace while preserving intentional line breaks
-	result = strings.TrimSpace(result)
 
 	return result
 }
@@ -452,9 +375,6 @@ func (g *Generator) processHTMLContent(content string) string {
 		return ""
 	}
 
-	// Clean MIME content but preserve HTML structure
-	content = g.cleanMIMEContent(content)
-
 	// Remove CSS if configured
 	content = g.removeCSS(content)
 
@@ -473,9 +393,6 @@ func (g *Generator) processTextContent(content string) string {
 	if len(content) == 0 {
 		return ""
 	}
-
-	// Clean MIME content and process as plain text
-	content = g.cleanMIMEContent(content)
 
 	// For plain text, we don't need HTML escaping since it will be in content_text
 	if len(content) > g.config.MaxTextContentLength {
@@ -642,11 +559,22 @@ func (g *Generator) removeCSS(htmlContent string) string {
 		result = result[:styleAttrStart] + result[quoteEnd:]
 	}
 
-	// Remove common CSS-related attributes
+	// Remove common CSS-related attributes and presentation attributes
 	cssAttributes := []string{
 		" class=",
 		" id=",
 		" bgcolor=",
+		" width=",
+		" height=",
+		" align=",
+		" valign=",
+		" border=",
+		" cellpadding=",
+		" cellspacing=",
+		" color=",
+		" face=",
+		" size=",
+		" charset=",
 	}
 
 	for _, attr := range cssAttributes {
@@ -703,6 +631,20 @@ func (g *Generator) removeCSS(htmlContent string) string {
 
 		commentEnd += commentStart + 3 // +3 for "-->"
 		result = result[:commentStart] + result[commentEnd:]
+	}
+
+	// Clean up any orphaned attribute values that might be left behind
+	// This handles cases where MIME processing may have left orphaned parts
+	orphanedPatterns := []string{
+		`="utf-8"`,
+		`="UTF-8"`,
+		`="text/html"`,
+		`="text/css"`,
+		`="application/`,
+	}
+
+	for _, pattern := range orphanedPatterns {
+		result = strings.ReplaceAll(result, pattern, "")
 	}
 
 	log.Printf("CSS removal complete, result: %d chars", len(result))

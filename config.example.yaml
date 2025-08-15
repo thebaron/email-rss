@@ -24,7 +24,9 @@ rss:
   max_rss_text_length: 2900          # Max chars for RSS text content
   max_summary_length: 300            # Max chars for item summaries
   # CSS removal (optional, default: false)
-  remove_css: false                  # Remove CSS styling, HTML comments, and bgcolor attributes from HTML emails
+  remove_css: false                  # Remove CSS styling, HTML comments, and presentation attributes from HTML emails
+                                     # Removes: <style> blocks, style= attributes, class=, id=, bgcolor=, width=, height=,
+                                     # align=, valign=, border=, cellpadding=, cellspacing=, color=, face=, size=, charset=
 
 server:
   host: "0.0.0.0"

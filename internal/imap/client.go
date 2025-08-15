@@ -36,10 +36,10 @@ type IMAPConfig struct {
 }
 
 type DebugConfig struct {
-	Enabled           bool
-	RawMessagesDir    string
-	SaveRawMessages   bool
-	MaxRawMessages    int
+	Enabled         bool
+	RawMessagesDir  string
+	SaveRawMessages bool
+	MaxRawMessages  int
 }
 
 type Message struct {
@@ -252,10 +252,10 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 		// Get the current folder name for debug context
 		// For now, we'll use "INBOX" as default - this could be improved by passing folder name as parameter
 		currentFolder := "INBOX"
-		
+
 		// Combine all body sections into raw data for debugging
 		var rawData bytes.Buffer
-		
+
 		// Write headers first
 		for _, section := range buffer.BodySection {
 			if section.Section != nil && section.Section.Specifier == imap.PartSpecifierHeader {
@@ -264,7 +264,7 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 				rawData.WriteString("\n\n")
 			}
 		}
-		
+
 		// Write full body
 		for _, section := range buffer.BodySection {
 			if section.Section != nil && section.Section.Specifier == imap.PartSpecifierNone {
@@ -273,7 +273,7 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 				rawData.WriteString("\n\n")
 			}
 		}
-		
+
 		// Write text part if available
 		for _, section := range buffer.BodySection {
 			if section.Section != nil && section.Section.Specifier == imap.PartSpecifierText {
@@ -282,7 +282,7 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 				rawData.WriteString("\n\n")
 			}
 		}
-		
+
 		// Save to file
 		if err := c.saveRawMessage(uid, currentFolder, rawData.Bytes()); err != nil {
 			log.Printf("Failed to save raw message for UID %d: %v", uid, err)
@@ -311,7 +311,7 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 		}
 
 		boundary = params["boundary"]
-		fmt.Printf("boundary: %s\n", boundary)
+		// fmt.Printf("boundary: %s\n", boundary)
 	}
 
 	var part []byte
@@ -333,10 +333,10 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 						ctype := p.Header.Get("Content-Type")
 						if strings.HasPrefix(ctype, "text/plain") {
 							content.TextBody = string(slurp)
-							fmt.Printf("text part: %s\n", content.TextBody)
+							// fmt.Printf("text part: %s\n", content.TextBody)
 						} else if strings.HasPrefix(ctype, "text/html") {
 							content.HTMLBody = string(slurp)
-							fmt.Printf("html part: %s\n", content.HTMLBody)
+							// fmt.Printf("html part: %s\n", content.HTMLBody)
 						}
 					}
 				} else {
@@ -347,6 +347,13 @@ func (c *Client) GetMessageContent(ctx context.Context, uid uint32) (*MessageCon
 		}
 		return true
 	})
+
+	if content.HTMLBody != "" {
+		content.HTMLBody = strings.ReplaceAll(content.HTMLBody, "=\r\n", "")
+	}
+	if content.TextBody != "" {
+		content.TextBody = strings.ReplaceAll(content.TextBody, "=\r\n", "")
+	}
 
 	return content, nil
 }
@@ -421,40 +428,4 @@ func (c *Client) cleanupOldRawMessages(debugDir string) {
 			log.Printf("Removed old raw message file: %s", emlFiles[i].Name())
 		}
 	}
-}
-
-func (c *Client) findHTMLContent(buffer *imapclient.FetchMessageBuffer) string {
-	// Common locations for HTML content in multipart messages
-	htmlSections := [][]int{
-		{1, 2}, // Often HTML is in part 1.2 in multipart/alternative
-		{2},    // Sometimes in part 2
-		{1},    // Or in part 1 if it's  the only part
-		{2, 1}, // Alternative structure
-	}
-
-	for _, part := range htmlSections {
-		section := &imap.FetchItemBodySection{
-			Specifier: imap.PartSpecifierNone,
-			Part:      part,
-		}
-
-		if body := buffer.FindBodySection(section); body != nil {
-			bodyStr := string(body)
-			// Check if this looks like HTML content
-			if c.isHTMLContent(bodyStr) {
-				return bodyStr
-			}
-		}
-	}
-
-	return ""
-}
-
-func (c *Client) isHTMLContent(content string) bool {
-	lowerContent := strings.ToLower(content)
-	return strings.Contains(lowerContent, "<html") ||
-		strings.Contains(lowerContent, "<body") ||
-		strings.Contains(lowerContent, "<div") ||
-		strings.Contains(lowerContent, "<p>") ||
-		strings.Contains(lowerContent, "content-type: text/html")
 }

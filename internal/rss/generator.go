@@ -333,40 +333,40 @@ func (g *Generator) hexToInt(hex string) (int, error) {
 	return result, nil
 }
 
-func (g *Generator) fixUTF8Encoding(input string) string {
-	result := input
+// func (g *Generator) fixUTF8Encoding(input string) string {
+// 	result := input
 
-	// Most common UTF-8 encoding issues when UTF-8 is interpreted as Latin-1
-	// Em dash: the mangled sequence "â€"" should become em dash
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u0094", "\u2014") // Em dash
+// 	// Most common UTF-8 encoding issues when UTF-8 is interpreted as Latin-1
+// 	// Em dash: the mangled sequence "â€"" should become em dash
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u0094", "\u2014") // Em dash
 
-	// En dash: different sequence "â€"" should become en dash
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u0093", "\u2013") // En dash
+// 	// En dash: different sequence "â€"" should become en dash
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u0093", "\u2013") // En dash
 
-	// Right single quotation mark
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u0099", "\u2019") // Right single quote
+// 	// Right single quotation mark
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u0099", "\u2019") // Right single quote
 
-	// Left single quotation mark
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u0098", "\u2018") // Left single quote
+// 	// Left single quotation mark
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u0098", "\u2018") // Left single quote
 
-	// Left double quotation mark
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u009c", "\u201c") // Left double quote
+// 	// Left double quotation mark
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u009c", "\u201c") // Left double quote
 
-	// Right double quotation mark
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u009d", "\u201d") // Right double quote
+// 	// Right double quotation mark
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u009d", "\u201d") // Right double quote
 
-	// Bullet
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u00a2", "\u2022") // Bullet
+// 	// Bullet
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u00a2", "\u2022") // Bullet
 
-	// Horizontal ellipsis
-	result = strings.ReplaceAll(result, "\u00e2\u0080\u00a6", "\u2026") // Ellipsis
+// 	// Horizontal ellipsis
+// 	result = strings.ReplaceAll(result, "\u00e2\u0080\u00a6", "\u2026") // Ellipsis
 
-	// Non-breaking space artifacts
-	result = strings.ReplaceAll(result, "\u00c2\u00a0", " ") // NBSP
-	result = strings.ReplaceAll(result, "\u00c2", "")        // Standalone artifacts
+// 	// Non-breaking space artifacts
+// 	result = strings.ReplaceAll(result, "\u00c2\u00a0", " ") // NBSP
+// 	result = strings.ReplaceAll(result, "\u00c2", "")        // Standalone artifacts
 
-	return result
-}
+// 	return result
+// }
 
 func (g *Generator) processHTMLContent(content string) string {
 	// log.Printf("processHTMLContent input: %d characters", len(content))

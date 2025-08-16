@@ -13,7 +13,7 @@ import (
 func TestDebugFunctionality(t *testing.T) {
 	// Create a temporary directory for debug output
 	tempDir := t.TempDir()
-	
+
 	// Create debug configuration with debug enabled
 	debugConfig := DebugConfig{
 		Enabled:         true,
@@ -48,7 +48,7 @@ func TestDebugFunctionality(t *testing.T) {
 	filename := files[0].Name()
 	assert.True(t, strings.Contains(filename, "uid_12345"))
 	assert.True(t, strings.HasSuffix(filename, ".eml"))
-	
+
 	// Check file contents
 	filePath := filepath.Join(debugDir, filename)
 	content, err := os.ReadFile(filePath)
@@ -59,7 +59,7 @@ func TestDebugFunctionality(t *testing.T) {
 func TestDebugFunctionalityDisabled(t *testing.T) {
 	// Create a temporary directory for debug output
 	tempDir := t.TempDir()
-	
+
 	// Create debug configuration with debug disabled
 	debugConfig := DebugConfig{
 		Enabled:         false,
@@ -89,7 +89,7 @@ func TestDebugFunctionalityDisabled(t *testing.T) {
 func TestDebugSaveRawMessagesDisabled(t *testing.T) {
 	// Create a temporary directory for debug output
 	tempDir := t.TempDir()
-	
+
 	// Create debug configuration with debug enabled but save messages disabled
 	debugConfig := DebugConfig{
 		Enabled:         true,
@@ -119,7 +119,7 @@ func TestDebugSaveRawMessagesDisabled(t *testing.T) {
 func TestDebugCleanupOldMessages(t *testing.T) {
 	// Create a temporary directory for debug output
 	tempDir := t.TempDir()
-	
+
 	// Create debug configuration with low max messages for testing cleanup
 	debugConfig := DebugConfig{
 		Enabled:         true,

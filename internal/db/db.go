@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -54,13 +54,13 @@ func (db *DB) Close() error {
 func (db *DB) retryOnBusy(fn func() error) error {
 	maxRetries := 3
 	baseDelay := 10 * time.Millisecond
-	
+
 	for i := 0; i < maxRetries; i++ {
 		err := fn()
 		if err == nil {
 			return nil
 		}
-		
+
 		// Check if it's a database busy error
 		if strings.Contains(err.Error(), "database is locked") || strings.Contains(err.Error(), "SQLITE_BUSY") {
 			if i < maxRetries-1 { // Don't sleep on the last attempt

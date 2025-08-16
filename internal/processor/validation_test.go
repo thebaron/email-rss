@@ -40,7 +40,7 @@ func (m *ValidationMockIMAPClient) GetMessages(ctx context.Context, folder strin
 		if err != nil {
 			parsedDate = time.Now()
 		}
-		
+
 		messages = append(messages, imap.Message{
 			ID:      1,
 			UID:     sample.UID,
@@ -66,7 +66,7 @@ func (m *ValidationMockIMAPClient) GetMessageContent(ctx context.Context, uid ui
 
 func TestValidationSamples(t *testing.T) {
 	validationDir := "../../validation_samples"
-	
+
 	// Check if validation samples directory exists
 	if _, err := os.Stat(validationDir); os.IsNotExist(err) {
 		t.Skipf("Validation samples directory not found: %s", validationDir)
@@ -76,7 +76,7 @@ func TestValidationSamples(t *testing.T) {
 	// Find all .in files
 	inputFiles, err := filepath.Glob(filepath.Join(validationDir, "*.in"))
 	require.NoError(t, err, "Failed to find input files")
-	
+
 	if len(inputFiles) == 0 {
 		t.Skip("No validation input files found")
 		return
@@ -85,7 +85,7 @@ func TestValidationSamples(t *testing.T) {
 	for _, inputFile := range inputFiles {
 		baseName := strings.TrimSuffix(filepath.Base(inputFile), ".in")
 		expectedFile := filepath.Join(validationDir, baseName+".out")
-		
+
 		// Check if corresponding .out file exists
 		if _, err := os.Stat(expectedFile); os.IsNotExist(err) {
 			t.Logf("Skipping %s: no corresponding .out file", baseName)
@@ -126,15 +126,15 @@ func runValidationTest(t *testing.T, inputFile, expectedFile string) {
 
 	// Set up RSS generator
 	rssConfig := rss.RSSConfig{
-		OutputDir:               tempDir,
-		Title:                   "Validation Test",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tempDir,
+		Title:                "Validation Test",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 	rssGenerator := rss.NewGenerator(rssConfig)
 
@@ -160,14 +160,14 @@ func runValidationTest(t *testing.T, inputFile, expectedFile string) {
 
 	// Extract the description content from the RSS
 	actualContent := extractRSSDescription(t, rssString)
-	
+
 	// Normalize whitespace for comparison
 	expectedContent = normalizeContent(expectedContent)
 	actualContent = normalizeContent(actualContent)
 
 	// Compare the content
-	assert.Equal(t, expectedContent, actualContent, 
-		"Generated content doesn't match expected output.\nExpected:\n%s\n\nActual:\n%s", 
+	assert.Equal(t, expectedContent, actualContent,
+		"Generated content doesn't match expected output.\nExpected:\n%s\n\nActual:\n%s",
 		expectedContent, actualContent)
 
 	t.Logf("✅ Validation passed for %s", filepath.Base(inputFile))
@@ -180,7 +180,7 @@ func extractRSSDescription(t *testing.T, rssContent string) string {
 	if itemStart == -1 {
 		t.Fatal("No <item> tag found in RSS content")
 	}
-	
+
 	// Find the description within the item
 	searchStart := itemStart
 	start := strings.Index(rssContent[searchStart:], "<description>")
@@ -188,12 +188,12 @@ func extractRSSDescription(t *testing.T, rssContent string) string {
 		t.Fatal("No <description> tag found in RSS item")
 	}
 	start = searchStart + start + len("<description>")
-	
+
 	end := strings.Index(rssContent[start:], "</description>")
 	if end == -1 {
 		t.Fatal("No closing </description> tag found in RSS item")
 	}
-	
+
 	description := rssContent[start : start+end]
 	return strings.TrimSpace(description)
 }
@@ -201,24 +201,24 @@ func extractRSSDescription(t *testing.T, rssContent string) string {
 // normalizeContent normalizes whitespace and XML entities for comparison
 func normalizeContent(content string) string {
 	// Decode common XML entities
-	content = strings.ReplaceAll(content, "&#xA;", "\n")  // newline
-	content = strings.ReplaceAll(content, "&amp;#39;", "'")  // apostrophe
+	content = strings.ReplaceAll(content, "&#xA;", "\n")    // newline
+	content = strings.ReplaceAll(content, "&amp;#39;", "'") // apostrophe
 	content = strings.ReplaceAll(content, "&lt;", "<")
 	content = strings.ReplaceAll(content, "&gt;", ">")
 	content = strings.ReplaceAll(content, "&quot;", "\"")
-	content = strings.ReplaceAll(content, "&amp;", "&")  // must be last
+	content = strings.ReplaceAll(content, "&amp;", "&") // must be last
 	content = strings.ReplaceAll(content, "&#34;", "\"")
-	
+
 	// Normalize line endings
 	content = strings.ReplaceAll(content, "\r\n", "\n")
 	content = strings.ReplaceAll(content, "\r", "\n")
-	
+
 	// Replace multiple spaces with single spaces but preserve structure
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
 		lines[i] = strings.TrimSpace(line)
 	}
-	
+
 	// Join lines back, but normalize multiple consecutive empty lines to single empty line
 	result := ""
 	prevEmpty := false
@@ -236,14 +236,14 @@ func normalizeContent(content string) string {
 			prevEmpty = false
 		}
 	}
-	
+
 	return strings.TrimSpace(result)
 }
 
 // TestValidationSampleFormat tests that sample files are properly formatted
 func TestValidationSampleFormat(t *testing.T) {
 	validationDir := "../../validation_samples"
-	
+
 	if _, err := os.Stat(validationDir); os.IsNotExist(err) {
 		t.Skipf("Validation samples directory not found: %s", validationDir)
 		return
@@ -268,9 +268,9 @@ func TestValidationSampleFormat(t *testing.T) {
 			assert.NotEmpty(t, sample.Subject, "Subject is required")
 			assert.NotEmpty(t, sample.From, "From is required")
 			assert.NotEmpty(t, sample.Date, "Date is required")
-			
+
 			// At least one body field should be present
-			assert.True(t, sample.TextBody != "" || sample.HTMLBody != "", 
+			assert.True(t, sample.TextBody != "" || sample.HTMLBody != "",
 				"At least one of text_body or html_body must be present")
 
 			// Test date format

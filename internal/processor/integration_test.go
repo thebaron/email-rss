@@ -146,7 +146,7 @@ This tests our UTF-8 fix functionality.`,
 func TestBusinessLogicIntegration(t *testing.T) {
 	// Create temporary directory for test files
 	tempDir := t.TempDir()
-	
+
 	// Set up test database
 	dbPath := filepath.Join(tempDir, "test.db")
 	database, err := db.New(dbPath)
@@ -162,15 +162,15 @@ func TestBusinessLogicIntegration(t *testing.T) {
 
 	// Set up RSS generator
 	rssConfig := rss.RSSConfig{
-		OutputDir:               tempDir,
-		Title:                   "Test Email RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tempDir,
+		Title:                "Test Email RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 	rssGenerator := rss.NewGenerator(rssConfig)
 
@@ -191,7 +191,7 @@ func TestBusinessLogicIntegration(t *testing.T) {
 	// Verify RSS feed was created
 	rssPath := filepath.Join(tempDir, "inbox.xml")
 	assert.FileExists(t, rssPath)
-	
+
 	rssContent, err := os.ReadFile(rssPath)
 	require.NoError(t, err)
 	rssString := string(rssContent)
@@ -199,7 +199,7 @@ func TestBusinessLogicIntegration(t *testing.T) {
 	// Verify JSON feed was created
 	jsonPath := filepath.Join(tempDir, "inbox.json")
 	assert.FileExists(t, jsonPath)
-	
+
 	jsonContent, err := os.ReadFile(jsonPath)
 	require.NoError(t, err)
 	jsonString := string(jsonContent)
@@ -218,12 +218,12 @@ func TestBusinessLogicIntegration(t *testing.T) {
 		assert.NotContains(t, rssString, "Content-Transfer-Encoding:")
 
 		// Check that quoted-printable is decoded
-		assert.NotContains(t, rssString, "=2C")  // Should be comma
-		assert.NotContains(t, rssString, "=3D")  // Should be equals sign
+		assert.NotContains(t, rssString, "=2C") // Should be comma
+		assert.NotContains(t, rssString, "=3D") // Should be equals sign
 
 		// Check that UTF-8 content is processed (specific characters may vary based on encoding)
-		assert.Contains(t, rssString, "encoding issues")  // Content about UTF-8 is present
-		assert.Contains(t, rssString, "em-dash")  // Reference to em-dash is present
+		assert.Contains(t, rssString, "encoding issues") // Content about UTF-8 is present
+		assert.Contains(t, rssString, "em-dash")         // Reference to em-dash is present
 	})
 
 	// Test JSON feed content
@@ -242,45 +242,47 @@ func TestBusinessLogicIntegration(t *testing.T) {
 		// Check content separation
 		assert.Contains(t, jsonString, `"content_html":`)
 		assert.Contains(t, jsonString, `"content_text":`)
-		
+
 		// HTML content should contain HTML tags for message 2 (JSON-encoded)
-		assert.Contains(t, jsonString, "Welcome to our newsletter!")  // Check for content
-		assert.Contains(t, jsonString, "HTML version")  // Check for content
+		assert.Contains(t, jsonString, "Welcome to our newsletter!") // Check for content
+		assert.Contains(t, jsonString, "HTML version")               // Check for content
 
 		// Text content should be clean (no HTML tags)
 		assert.Contains(t, jsonString, "This is a simple plain text email")
 
 		// Check summaries are generated
 		assert.Contains(t, jsonString, `"summary":`)
-		
+
 		// MIME boundaries should be cleaned up
 		assert.NotContains(t, jsonString, "MCPart_338457435")
 		assert.NotContains(t, jsonString, "Content-Type:")
-		
+
 		// UTF-8 content should be processed (specific characters may vary based on encoding)
-		assert.Contains(t, jsonString, "encoding issues")  // Content about UTF-8 is present
-		assert.Contains(t, jsonString, "em-dash")  // Reference to em-dash is present
+		assert.Contains(t, jsonString, "encoding issues") // Content about UTF-8 is present
+		assert.Contains(t, jsonString, "em-dash")         // Reference to em-dash is present
 	})
 
 	// Test summary generation
 	t.Run("Summary Generation", func(t *testing.T) {
 		// Should contain first few lines as summary
-		assert.Contains(t, jsonString, "Hello there! This is a simple plain text email.")  // Check first line
-		assert.Contains(t, jsonString, "Welcome to our newsletter! This is the plain text version.")  // Check second message
+		assert.Contains(t, jsonString, "Hello there! This is a simple plain text email.")            // Check first line
+		assert.Contains(t, jsonString, "Welcome to our newsletter! This is the plain text version.") // Check second message
 	})
 
 	// Test database tracking
 	t.Run("Database Tracking", func(t *testing.T) {
 		// All messages should be marked as processed
+		var processed bool
+
 		for _, msg := range messages {
-			processed, err := database.IsMessageProcessed("INBOX", msg.UID)
+			processed, err = database.IsMessageProcessed("INBOX", msg.UID)
 			assert.NoError(t, err)
 			assert.True(t, processed, "Message UID %d should be marked as processed", msg.UID)
 		}
 
 		// Get processed messages
-		processedMsgs, err := database.GetProcessedMessages("INBOX", 10)
-		assert.NoError(t, err)
+		processedMsgs, err2 := database.GetProcessedMessages("INBOX", 10)
+		assert.NoError(t, err2)
 		assert.Len(t, processedMsgs, 4)
 	})
 
@@ -309,7 +311,7 @@ func TestBusinessLogicIntegration(t *testing.T) {
 
 func TestContentProcessingEdgeCases(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Test with edge case messages
 	edgeMessages := []imap.Message{
 		{
@@ -317,7 +319,7 @@ func TestContentProcessingEdgeCases(t *testing.T) {
 			Date: time.Now(),
 		},
 		{
-			ID: 2, UID: 2, Subject: "Only HTML", From: "test@example.com", 
+			ID: 2, UID: 2, Subject: "Only HTML", From: "test@example.com",
 			Date: time.Now(),
 		},
 		{
@@ -343,15 +345,15 @@ func TestContentProcessingEdgeCases(t *testing.T) {
 	defer database.Close()
 
 	rssConfig := rss.RSSConfig{
-		OutputDir:               tempDir,
-		Title:                   "Edge Case Test",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tempDir,
+		Title:                "Edge Case Test",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 	rssGenerator := rss.NewGenerator(rssConfig)
 	processor := New(mockIMAP, database, rssGenerator)
@@ -375,9 +377,9 @@ func TestContentProcessingEdgeCases(t *testing.T) {
 	assert.Contains(t, jsonString, "Empty Content")
 	assert.Contains(t, jsonString, "Only HTML")
 	assert.Contains(t, jsonString, "Only Text")
-	
+
 	// Should convert between formats when only one is available
-	assert.Contains(t, jsonString, "Only HTML content")  // Check for content, not raw HTML tags
+	assert.Contains(t, jsonString, "Only HTML content") // Check for content, not raw HTML tags
 	assert.Contains(t, jsonString, "Only plain text content")
 }
 

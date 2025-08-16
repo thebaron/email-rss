@@ -51,22 +51,22 @@ func (p *Processor) ProcessFolders(ctx context.Context, folders map[string]strin
 	// Process folders concurrently but with limited concurrency
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, p.maxWorkers)
-	
+
 	for folderPath, feedName := range folders {
 		wg.Add(1)
 		go func(folderPath, feedName string) {
 			defer wg.Done()
-			
+
 			// Acquire semaphore to limit concurrent folder processing
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
-			
+
 			if err := p.processFolder(ctx, folderPath, feedName); err != nil {
 				log.Printf("Failed to process folder %s: %v", folderPath, err)
 			}
 		}(folderPath, feedName)
 	}
-	
+
 	wg.Wait()
 	return nil
 }
@@ -127,21 +127,21 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 	// Channel to collect processed messages
 	resultChan := make(chan rss.EmailMessage, len(messages))
 	errorChan := make(chan error, len(messages))
-	
+
 	// Worker pool for message processing
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, p.maxWorkers)
-	
+
 	// Process each message concurrently
 	for _, msg := range messages {
 		wg.Add(1)
 		go func(msg imap.Message) {
 			defer wg.Done()
-			
+
 			// Acquire semaphore to limit concurrent operations
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
-			
+
 			// Check if message is already processed
 			processed, checkErr := p.database.IsMessageProcessed(folderPath, msg.UID)
 			if checkErr != nil {
@@ -149,14 +149,14 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 				errorChan <- checkErr
 				return
 			}
-			
+
 			if processed {
 				log.Printf("Message UID %d already processed, skipping", msg.UID)
 				return
 			}
-			
+
 			log.Printf("Processing message UID %d: %s", msg.UID, msg.Subject)
-			
+
 			// Get message content
 			content, contentErr := p.imapClient.GetMessageContent(ctx, msg.UID)
 			if contentErr != nil {
@@ -164,7 +164,7 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 				// Create empty content if error
 				content = &imap.MessageContent{TextBody: "", HTMLBody: ""}
 			}
-			
+
 			// Create RSS message
 			rssMsg := rss.EmailMessage{
 				UID:      msg.UID,
@@ -174,31 +174,30 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 				TextBody: content.TextBody,
 				HTMLBody: content.HTMLBody,
 			}
-			
+
 			// Mark message as processed
 			if markErr := p.database.MarkMessageProcessed(folderPath, msg.UID, msg.Subject, msg.From, msg.Date); markErr != nil {
 				log.Printf("Failed to mark message UID %d as processed: %v", msg.UID, markErr)
 				errorChan <- markErr
 				return
 			}
-			
+
 			// Send result
 			resultChan <- rssMsg
-			
 		}(msg)
 	}
-	
+
 	// Close channels when all workers are done
 	go func() {
 		wg.Wait()
 		close(resultChan)
 		close(errorChan)
 	}()
-	
+
 	// Collect results
 	var newMessages []rss.EmailMessage
 	var errors []error
-	
+
 	for {
 		select {
 		case msg, ok := <-resultChan:
@@ -214,17 +213,17 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 				errors = append(errors, err)
 			}
 		}
-		
+
 		if resultChan == nil && errorChan == nil {
 			break
 		}
 	}
-	
+
 	// Log any errors but don't fail the entire operation
 	for _, err := range errors {
 		log.Printf("Error during message processing: %v", err)
 	}
-	
+
 	log.Printf("Processed %d new messages concurrently", len(newMessages))
 	return newMessages, nil
 }
@@ -233,7 +232,7 @@ func (p *Processor) processMessagesAsync(ctx context.Context, folderPath string,
 func (p *Processor) generateFeedsAsync(ctx context.Context, folderPath, feedName string, messages []rss.EmailMessage) error {
 	var wg sync.WaitGroup
 	var rssErr, jsonErr error
-	
+
 	// Generate RSS feed
 	wg.Add(1)
 	go func() {
@@ -243,7 +242,7 @@ func (p *Processor) generateFeedsAsync(ctx context.Context, folderPath, feedName
 			log.Printf("Failed to generate RSS feed for %s: %v", folderPath, rssErr)
 		}
 	}()
-	
+
 	// Generate JSON feed
 	wg.Add(1)
 	go func() {
@@ -253,9 +252,9 @@ func (p *Processor) generateFeedsAsync(ctx context.Context, folderPath, feedName
 			log.Printf("Failed to generate JSON feed for %s: %v", folderPath, jsonErr)
 		}
 	}()
-	
+
 	wg.Wait()
-	
+
 	// Return error if either feed generation failed
 	if rssErr != nil {
 		return fmt.Errorf("RSS feed generation failed: %v", rssErr)
@@ -263,7 +262,7 @@ func (p *Processor) generateFeedsAsync(ctx context.Context, folderPath, feedName
 	if jsonErr != nil {
 		return fmt.Errorf("JSON feed generation failed: %v", jsonErr)
 	}
-	
+
 	log.Printf("Successfully generated both RSS and JSON feeds for %s", folderPath)
 	return nil
 }

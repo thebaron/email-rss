@@ -25,15 +25,15 @@ func (m *mockAIHooks) SummarizeMessage(subject, body string) (string, error) {
 
 func TestNewGenerator(t *testing.T) {
 	config := RSSConfig{
-		OutputDir:               "/tmp/feeds",
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            "/tmp/feeds",
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
@@ -45,15 +45,15 @@ func TestNewGenerator(t *testing.T) {
 func TestGenerateFeed(t *testing.T) {
 	tmpDir := t.TempDir()
 	config := RSSConfig{
-		OutputDir:               tmpDir,
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tmpDir,
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
@@ -132,10 +132,10 @@ func TestGenerateFeedWithAIHooks_DISABLED(t *testing.T) {
 	testTime := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	messages := []EmailMessage{
 		{
-			UID:     1,
-			Subject: "Test Message",
-			From:    "sender@example.com",
-			Date:    testTime,
+			UID:      1,
+			Subject:  "Test Message",
+			From:     "sender@example.com",
+			Date:     testTime,
 			TextBody: "Original body content.",
 			HTMLBody: "",
 		},
@@ -156,15 +156,15 @@ func TestGenerateFeedWithAIHooks_DISABLED(t *testing.T) {
 func TestGenerateFeedWithAIHooksError(t *testing.T) {
 	tmpDir := t.TempDir()
 	config := RSSConfig{
-		OutputDir:               tmpDir,
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tmpDir,
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
@@ -178,10 +178,10 @@ func TestGenerateFeedWithAIHooksError(t *testing.T) {
 	testTime := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	messages := []EmailMessage{
 		{
-			UID:     1,
-			Subject: "Test Message",
-			From:    "sender@example.com",
-			Date:    testTime,
+			UID:      1,
+			Subject:  "Test Message",
+			From:     "sender@example.com",
+			Date:     testTime,
 			TextBody: "Original body content.",
 			HTMLBody: "",
 		},
@@ -200,25 +200,25 @@ func TestGenerateFeedWithAIHooksError(t *testing.T) {
 
 func TestGenerateFeedInvalidDirectory(t *testing.T) {
 	config := RSSConfig{
-		OutputDir:               "/invalid/readonly/path",
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            "/invalid/readonly/path",
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
 
 	messages := []EmailMessage{
 		{
-			UID:     1,
-			Subject: "Test Message",
-			From:    "sender@example.com",
-			Date:    time.Now(),
+			UID:      1,
+			Subject:  "Test Message",
+			From:     "sender@example.com",
+			Date:     time.Now(),
 			TextBody: "Test body",
 			HTMLBody: "",
 		},
@@ -281,15 +281,15 @@ func TestProcessContent_DISABLED(t *testing.T) {
 
 func TestGetFeedPath(t *testing.T) {
 	config := RSSConfig{
-		OutputDir:               "/tmp/feeds",
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            "/tmp/feeds",
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
@@ -304,15 +304,15 @@ func TestGetFeedPath(t *testing.T) {
 func TestFeedExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	config := RSSConfig{
-		OutputDir:               tmpDir,
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tmpDir,
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)
@@ -339,15 +339,15 @@ func TestStubAIHooks(t *testing.T) {
 func TestGenerateFeedEmptyMessages(t *testing.T) {
 	tmpDir := t.TempDir()
 	config := RSSConfig{
-		OutputDir:               tmpDir,
-		Title:                   "Test RSS",
-		BaseURL:                 "http://localhost:8080",
-		MaxHTMLContentLength:    8000,
-		MaxTextContentLength:    3000,
-		MaxRSSHTMLLength:        5000,
-		MaxRSSTextLength:        2900,
-		MaxSummaryLength:        300,
-		RemoveCSS:               false,
+		OutputDir:            tmpDir,
+		Title:                "Test RSS",
+		BaseURL:              "http://localhost:8080",
+		MaxHTMLContentLength: 8000,
+		MaxTextContentLength: 3000,
+		MaxRSSHTMLLength:     5000,
+		MaxRSSTextLength:     2900,
+		MaxSummaryLength:     300,
+		RemoveCSS:            false,
 	}
 
 	generator := NewGenerator(config)

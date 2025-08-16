@@ -101,15 +101,15 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 	defer imapClient.Close()
 
 	rssConfig := rss.RSSConfig{
-		OutputDir:               cfg.RSS.OutputDir,
-		Title:                   cfg.RSS.Title,
-		BaseURL:                 cfg.RSS.BaseURL,
-		MaxHTMLContentLength:    cfg.RSS.MaxHTMLContentLength,
-		MaxTextContentLength:    cfg.RSS.MaxTextContentLength,
-		MaxRSSHTMLLength:        cfg.RSS.MaxRSSHTMLLength,
-		MaxRSSTextLength:        cfg.RSS.MaxRSSTextLength,
-		MaxSummaryLength:        cfg.RSS.MaxSummaryLength,
-		RemoveCSS:               cfg.RSS.RemoveCSS,
+		OutputDir:            cfg.RSS.OutputDir,
+		Title:                cfg.RSS.Title,
+		BaseURL:              cfg.RSS.BaseURL,
+		MaxHTMLContentLength: cfg.RSS.MaxHTMLContentLength,
+		MaxTextContentLength: cfg.RSS.MaxTextContentLength,
+		MaxRSSHTMLLength:     cfg.RSS.MaxRSSHTMLLength,
+		MaxRSSTextLength:     cfg.RSS.MaxRSSTextLength,
+		MaxSummaryLength:     cfg.RSS.MaxSummaryLength,
+		RemoveCSS:            cfg.RSS.RemoveCSS,
 	}
 
 	rssGenerator := rss.NewGenerator(rssConfig)
@@ -129,7 +129,7 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 	defer ticker.Stop()
 
 	log.Println("Starting email processing loop...")
-	
+
 	// Process immediately on startup
 	if err := proc.ProcessFolders(ctx, cfg.IMAP.Folders); err != nil {
 		log.Printf("Initial processing failed: %v", err)
@@ -172,15 +172,15 @@ func runReset(cfg *config.Config, database *db.DB, folderPath string) error {
 	defer imapClient.Close()
 
 	rssConfig := rss.RSSConfig{
-		OutputDir:               cfg.RSS.OutputDir,
-		Title:                   cfg.RSS.Title,
-		BaseURL:                 cfg.RSS.BaseURL,
-		MaxHTMLContentLength:    cfg.RSS.MaxHTMLContentLength,
-		MaxTextContentLength:    cfg.RSS.MaxTextContentLength,
-		MaxRSSHTMLLength:        cfg.RSS.MaxRSSHTMLLength,
-		MaxRSSTextLength:        cfg.RSS.MaxRSSTextLength,
-		MaxSummaryLength:        cfg.RSS.MaxSummaryLength,
-		RemoveCSS:               cfg.RSS.RemoveCSS,
+		OutputDir:            cfg.RSS.OutputDir,
+		Title:                cfg.RSS.Title,
+		BaseURL:              cfg.RSS.BaseURL,
+		MaxHTMLContentLength: cfg.RSS.MaxHTMLContentLength,
+		MaxTextContentLength: cfg.RSS.MaxTextContentLength,
+		MaxRSSHTMLLength:     cfg.RSS.MaxRSSHTMLLength,
+		MaxRSSTextLength:     cfg.RSS.MaxRSSTextLength,
+		MaxSummaryLength:     cfg.RSS.MaxSummaryLength,
+		RemoveCSS:            cfg.RSS.RemoveCSS,
 	}
 
 	rssGenerator := rss.NewGenerator(rssConfig)

@@ -29,7 +29,7 @@ func (m *MockAsyncIMAPClient) GetMessageContent(ctx context.Context, uid uint32)
 	if m.delay > 0 {
 		time.Sleep(m.delay)
 	}
-	
+
 	if content, exists := m.messageContents[uid]; exists {
 		return content, nil
 	}
@@ -86,7 +86,7 @@ func TestAsyncMessageProcessing(t *testing.T) {
 		processor.SetMaxWorkers(3) // Use 3 workers for 5 messages
 
 		ctx := context.Background()
-		
+
 		// Measure processing time
 		start := time.Now()
 		newMessages, err := processor.processMessagesAsync(ctx, "INBOX", messages)
@@ -118,7 +118,7 @@ func TestAsyncMessageProcessing(t *testing.T) {
 		processor.SetMaxWorkers(1) // Use 1 worker (essentially sequential)
 
 		ctx := context.Background()
-		
+
 		start := time.Now()
 		newMessages, err := processor.processMessagesAsync(ctx, "INBOX2", messages)
 		duration := time.Since(start)
@@ -170,7 +170,7 @@ func TestAsyncFeedGeneration(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	
+
 	// Test concurrent feed generation
 	start := time.Now()
 	err := processor.generateFeedsAsync(ctx, "INBOX", "test", testMessages)
@@ -234,7 +234,7 @@ func TestConcurrentFolderProcessing(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	
+
 	// Test concurrent folder processing
 	start := time.Now()
 	err = processor.ProcessFolders(ctx, folders)

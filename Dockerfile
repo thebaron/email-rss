@@ -1,4 +1,7 @@
-FROM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM  golang:1.24-alpine AS builder
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 WORKDIR /app
 
@@ -9,7 +12,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o emailrss ./cmd/emailrss
+RUN GOARCH=amd64 GOOS=linux go build -a -o emailrss ./cmd/emailrss
 
 FROM alpine:latest
 

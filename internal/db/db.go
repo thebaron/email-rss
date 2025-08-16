@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -23,10 +24,14 @@ type ProcessedMessage struct {
 }
 
 func New(dbPath string) (*DB, error) {
-	conn, err := sql.Open("sqlite", dbPath)
+	conn, err := sql.Open("sqlite", dbPath+"?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
+
+	// Configure connection pool for better concurrency
+	conn.SetMaxOpenConns(10)
+	conn.SetMaxIdleConns(5)
 
 	db := &DB{conn: conn}
 
@@ -43,6 +48,29 @@ func (db *DB) Close() error {
 		return db.conn.Close()
 	}
 	return nil
+}
+
+// retryOnBusy executes a function with retry logic for database busy errors
+func (db *DB) retryOnBusy(fn func() error) error {
+	maxRetries := 3
+	baseDelay := 10 * time.Millisecond
+	
+	for i := 0; i < maxRetries; i++ {
+		err := fn()
+		if err == nil {
+			return nil
+		}
+		
+		// Check if it's a database busy error
+		if strings.Contains(err.Error(), "database is locked") || strings.Contains(err.Error(), "SQLITE_BUSY") {
+			if i < maxRetries-1 { // Don't sleep on the last attempt
+				time.Sleep(baseDelay * time.Duration(1<<i)) // Exponential backoff
+				continue
+			}
+		}
+		return err
+	}
+	return fmt.Errorf("max retries exceeded")
 }
 
 func (db *DB) migrate() error {
@@ -70,7 +98,9 @@ func (db *DB) IsMessageProcessed(folder string, uid uint32) (bool, error) {
 	query := `SELECT COUNT(*) FROM processed_messages WHERE folder = ? AND uid = ?`
 
 	var count int
-	err := db.conn.QueryRow(query, folder, uid).Scan(&count)
+	err := db.retryOnBusy(func() error {
+		return db.conn.QueryRow(query, folder, uid).Scan(&count)
+	})
 	if err != nil {
 		return false, fmt.Errorf("failed to check if message is processed: %v", err)
 	}
@@ -84,7 +114,10 @@ func (db *DB) MarkMessageProcessed(folder string, uid uint32, subject, from stri
 	VALUES (?, ?, ?, ?, ?)
 	`
 
-	_, err := db.conn.Exec(query, folder, uid, subject, from, date)
+	err := db.retryOnBusy(func() error {
+		_, err := db.conn.Exec(query, folder, uid, subject, from, date)
+		return err
+	})
 	if err != nil {
 		return fmt.Errorf("failed to mark message as processed: %v", err)
 	}
@@ -123,7 +156,10 @@ func (db *DB) GetProcessedMessages(folder string, limit int) ([]ProcessedMessage
 func (db *DB) ClearFolderHistory(folder string) error {
 	query := `DELETE FROM processed_messages WHERE folder = ?`
 
-	_, err := db.conn.Exec(query, folder)
+	err := db.retryOnBusy(func() error {
+		_, err := db.conn.Exec(query, folder)
+		return err
+	})
 	if err != nil {
 		return fmt.Errorf("failed to clear folder history: %v", err)
 	}
@@ -135,7 +171,9 @@ func (db *DB) GetLastProcessedDate(folder string) (time.Time, error) {
 	query := `SELECT MAX(date) FROM processed_messages WHERE folder = ?`
 
 	var lastDateStr sql.NullString
-	err := db.conn.QueryRow(query, folder).Scan(&lastDateStr)
+	err := db.retryOnBusy(func() error {
+		return db.conn.QueryRow(query, folder).Scan(&lastDateStr)
+	})
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to get last processed date: %v", err)
 	}

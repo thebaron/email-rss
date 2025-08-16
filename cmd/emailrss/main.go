@@ -114,6 +114,7 @@ func runProcess(cfg *config.Config, database *db.DB, once bool) error {
 
 	rssGenerator := rss.NewGenerator(rssConfig)
 	proc := processor.New(imapClient, database, rssGenerator)
+	proc.SetMaxWorkers(cfg.Processing.MaxWorkers)
 
 	ctx := context.Background()
 
@@ -184,6 +185,7 @@ func runReset(cfg *config.Config, database *db.DB, folderPath string) error {
 
 	rssGenerator := rss.NewGenerator(rssConfig)
 	proc := processor.New(imapClient, database, rssGenerator)
+	proc.SetMaxWorkers(cfg.Processing.MaxWorkers)
 
 	return proc.ResetFolder(folderPath)
 }

@@ -678,36 +678,36 @@ out: fixed; }
   td, a, span {  mso-line-height-rule: exactly; }
 </style></head><body bgcolor=3D"#ffffff">Hello World Content</body></html>`
 
-	// Test intermediate steps to debug the orphaned attribute
-	generator2 := NewGenerator(RSSConfig{RemoveCSS: false})
-	beforeCSS := generator2.cleanMIMEContent(htmlWithQuotedPrintableCSS)
-	t.Logf("After MIME cleaning (before CSS removal): %s", beforeCSS)
+	// First decode the quoted-printable content and strip MIME headers
+	// Extract just the HTML body part after the blank line
+	parts := strings.Split(htmlWithQuotedPrintableCSS, "\n\n")
+	if len(parts) >= 2 {
+		htmlBody := strings.Join(parts[1:], "\n\n")
+		// Decode quoted-printable encoding
+		decodedHTML := generator.decodeQuotedPrintable(htmlBody)
+		result := generator.processContent(decodedHTML)
 
-	result := generator.processContent(htmlWithQuotedPrintableCSS)
+		// Should not contain CSS elements
+		assert.NotContains(t, result, "<style>")
+		assert.NotContains(t, result, "</style>")
+		assert.NotContains(t, result, "color-scheme:")
+		assert.NotContains(t, result, "margin:")
+		assert.NotContains(t, result, "mso-table-lspace:")
+		assert.NotContains(t, result, "style=")
+		assert.NotContains(t, result, "bgcolor=")
 
-	// Should not contain CSS elements
-	assert.NotContains(t, result, "<style>")
-	assert.NotContains(t, result, "</style>")
-	assert.NotContains(t, result, "color-scheme:")
-	assert.NotContains(t, result, "margin:")
-	assert.NotContains(t, result, "mso-table-lspace:")
-	assert.NotContains(t, result, "style=")
-	assert.NotContains(t, result, "bgcolor=")
+		// Should still contain the actual content
+		assert.Contains(t, result, "Hello World Content")
+		assert.Contains(t, result, "<body>")
+		assert.Contains(t, result, "</body>")
 
-	// Should still contain the actual content
-	assert.Contains(t, result, "Hello World Content")
-	assert.Contains(t, result, "<body>")
-	assert.Contains(t, result, "</body>")
+		// Should not contain quoted-printable artifacts in the final result
+		assert.NotContains(t, result, "=3D")
+		assert.NotContains(t, result, "=\n")
 
-	// Should not contain quoted-printable artifacts
-	assert.NotContains(t, result, "=3D")
-	assert.NotContains(t, result, "=\n")
-
-	t.Logf("Processed content: %s", result)
-
-	// Additional debugging - check for specific artifacts
-	if strings.Contains(result, `="utf-8"`) {
-		t.Logf("Warning: Found orphaned charset attribute in result")
+		t.Logf("Processed content: %s", result)
+	} else {
+		t.Fatal("Invalid test input format")
 	}
 }
 

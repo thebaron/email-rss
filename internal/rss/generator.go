@@ -473,7 +473,7 @@ func (g *Generator) removeCSS(htmlContent string) string {
 		return htmlContent
 	}
 
-	log.Printf("Removing CSS from HTML content (%d chars)", len(htmlContent))
+	// log.Printf("Removing CSS from HTML content (%d chars)", len(htmlContent))
 
 	// Remove <style> tags and their content
 	result := htmlContent

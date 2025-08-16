@@ -16,43 +16,74 @@ spec:
         app: emailrss
     spec:
       containers:
-      - name: emailrss
-        image: emailrss:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-        volumeMounts:
-        - name: config-volume
-          mountPath: /data/config.yaml
-          subPath: config.yaml
-        - name: data-volume
-          mountPath: /data
-        env:
-        - name: TZ
-          value: "UTC"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+        - name: emailrss-server
+          image: ghcr.io/thebaron/email-rss:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /data/config.yaml
+              subPath: config.yaml
+            - name: data-volume
+              mountPath: /data
+          env:
+            - name: TZ
+              value: "UTC"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+        - name: emailrss-processor
+          image: ghcr.io/thebaron/email-rss:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c", "./emailrss process -c /data/config.yaml"]
+          envFrom:
+            - secretRef:
+                name: emailrss-secret
+          volumeMounts:
+            - name: config-volume
+              mountPath: /data/config.yaml
+              subPath: config.yaml
+            - name: data-volume
+              mountPath: /data
+          env:
+            - name: TZ
+              value: "UTC"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+      initContainers:
+        - name: init-create-data-dir
+          image: busybox
+          command:
+            ["sh", "-c", "mkdir -p /data /data/db /data/feeds /data/debug"]
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
       volumes:
-      - name: config-volume
-        configMap:
-          name: emailrss-config
-      - name: data-volume
-        persistentVolumeClaim:
-          claimName: emailrss-data
+        - name: config-volume
+          configMap:
+            name: emailrss-config
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: emailrss-data

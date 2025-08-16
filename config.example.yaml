@@ -38,3 +38,7 @@ debug:
   raw_messages_dir: "./debug/raw_messages"  # Directory for raw IMAP messages
   save_raw_messages: false           # Save raw IMAP messages to disk
   max_raw_messages: 100              # Maximum number of raw messages to keep
+
+# Processing options (optional, for performance tuning)
+processing:
+  max_workers: 5                     # Maximum concurrent workers for message processing (default: 5, max: 20)
